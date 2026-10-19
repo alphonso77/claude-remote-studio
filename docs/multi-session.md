@@ -47,7 +47,7 @@ Roles can move between sessions, or between the Mac and another machine. For exa
 ## Housekeeping
 
 - **One session owns the shared pieces:** the server, tmux, and the config files. The others ask it before touching them, and a person does the restarts.
-- **Stand down finished sessions** ([operator guide](operator-guide.md#stand-down-a-session)), so their memory, worktrees and dev servers don't linger.
+- **Stand down finished sessions** ([operator guide](operator-guide.md#stand-down-a-session)), so their RAM, worktrees and dev servers don't linger.
 - **Watch for leftover processes.** Sessions start dev servers and previews in their worktrees, and those keep running after the work is merged. We found a `vite preview` holding a port hours after its PR merged. The lead can check with `ps -axo pid,lstart,command | grep worktrees` and stop what's no longer needed.
 
 ## Still untested
