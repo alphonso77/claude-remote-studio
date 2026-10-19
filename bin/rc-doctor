@@ -8,6 +8,16 @@ fail=0
 pass() { echo "ok    $*"; }
 bad()  { echo "FAIL  $*"; fail=1; }
 note() { echo "note  $*"; }
+if [[ -z "$(command -v claude)" ]]; then bad "claude isn't on rc-loop's PATH"
+else
+  ver=$(claude --version 2>/dev/null | awk 'NR==1{print $1}')
+  # 2.1.273 is the oldest version with every flag rc-loop can pass (--chrome needs it).
+  autoload -Uz is-at-least
+  if [[ -n "$ver" ]] && is-at-least 2.1.273 "$ver"; then pass "claude $ver at $(command -v claude)"
+  else bad "claude at $(command -v claude) is ${ver:-unknown}; rc-loop needs 2.1.273 or later (an older copy earlier in PATH?)"; fi
+  others=( ${(u)${(f)"$(whence -ap claude)"}} )   # PATH order, duplicates removed
+  (( ${#others} > 1 )) && note "${#others} claude binaries on PATH; rc-loop runs the first: ${(j:, :)others}"
+fi
 for src in "$repo"/bin/*; do
   t="$HOME/.local/bin/${src:t}"
   if [[ -L "$t" && "${t:A}" == "${src:A}" ]]; then pass "${src:t} links into the clone"
@@ -20,7 +30,7 @@ if [[ "$(git -C "$repo" rev-parse HEAD)" == "$(git -C "$repo" rev-parse origin/m
 else bad "clone isn't at origin/main (on $(git -C "$repo" branch --show-current); git switch main && git pull)"; fi
 [[ -f "$HOME/.config/rc-loop.env" ]] && pass "~/.config/rc-loop.env exists" || bad "~/.config/rc-loop.env missing"
 if pgrep -f "rc-loop" >/dev/null; then pass "rc-loop is running"
-elif pgrep -f "claude remote-control" >/dev/null; then bad "a remote-control server is running, but not under rc-loop (pre-migration script?)"
+elif pgrep -f "claude remote-control" >/dev/null; then bad "a remote-control server is running, but not under rc-loop (started by hand or another script?)"
 else bad "no remote-control server is running"; fi
 tmux has-session -t rc 2>/dev/null && pass "tmux session rc exists" || bad "no tmux session named rc"
 [[ "$(pmset -g 2>/dev/null | awk '$1=="sleep"{print $2}')" == 0 ]] && pass "system sleep is off" || bad "system sleep is on; Remote Control can't serve sessions while the Mac sleeps"
