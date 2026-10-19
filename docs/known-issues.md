@@ -27,9 +27,11 @@ Each item says what's been **observed** on our machine, what's **documented** by
 - macOS can log in automatically after a power failure only if FileVault is off. With FileVault on, the Mac waits at a pre-boot unlock screen before the network is up.
 - Tailscale running as a system daemon plus a VNC app on the phone would let you log in remotely, if FileVault allows it.
 
-## Starting the server over SSH (unverified)
+## Credentials stored in the keychain don't work over SSH
 
-The original setup notes said to start `claude remote-control` from Terminal on the Mac's screen, not over SSH, because Claude Code reads its login from the macOS keychain and an SSH session often can't open it. **We haven't tested this.** The server was started once from the Mac's screen and kept running. Until it's tested, restart it inside the existing `rc` tmux pane (see the operator guide).
+**Observed (2026-10-19):** over SSH, `gh auth status` on the Mac reported "The token in default is invalid" and `gh repo view` of a private repo failed with HTTP 401. Meanwhile, sessions on the same Mac pushed to GitHub without trouble. `gh` keeps its token in the macOS keychain, which an SSH login usually can't unlock. So do sign-ins, and anything that needs them (cloning a private repo, `gh` calls), from Terminal on the Mac's screen or from a session.
+
+**Still unverified for Claude Code itself:** the original setup notes said to start `claude remote-control` from the Mac's screen, not over SSH, for the same keychain reason. The `gh` result makes that likely, but Claude Code hasn't been tested over SSH. Until it is, restart the server inside the existing `rc` tmux pane (see the operator guide).
 
 ## Server mode exits after about 10 minutes offline
 

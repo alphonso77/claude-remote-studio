@@ -4,6 +4,8 @@ Run Claude Code on a Mac at home and drive it from your phone. The Mac keeps wor
 
 This is a working setup, not a product. It ran a full weekend of remote work from an iPhone, including a flight, with no restarts. Everything here is plain zsh, tmux and Claude Code's own Remote Control feature.
 
+Built while building [Fratelli Software](https://fratellisoftware.com).
+
 ```
  iPhone (Claude app, Code tab)              Mac at home ("the Studio")
  or claude.ai/code in a browser            ┌──────────────────────────────────────────┐
@@ -35,7 +37,6 @@ This is a working setup, not a product. It ran a full weekend of remote work fro
 | [`docs/operator-guide.md`](docs/operator-guide.md) | What's on the Mac's screen and what to do with it. Start here if you're running it. |
 | [`docs/known-issues.md`](docs/known-issues.md) | Open problems, unverified claims and gotchas. |
 | [`docs/migration.md`](docs/migration.md) | Moving a hand-made install onto this repo without losing your sessions. |
-| [`docs/history.md`](docs/history.md) | How this setup was built, and why each piece exists. |
 
 ## Requirements
 
@@ -80,6 +81,16 @@ Check everything with `rc-doctor`.
 - Test from the phone **with Wi-Fi off**, so you're testing the same path you'll use when you're away.
 - Turn on push notifications: in a session, run `/config` and turn on **Push when actions required** and **Push when Claude decides**. Permission prompts then reach your phone.
 - Know what this setup does **not** survive: a reboot or power loss (see [known issues](docs/known-issues.md)).
+
+## Why it's built this way
+
+**Remote Control server mode, not a cloud environment.** The work needs the Mac's own checkout, tools, credentials and local model. Remote Control keeps execution on the Mac and only relays the conversation through Anthropic, with no open ports and no VPN. Server mode (`claude remote-control`) beats a single interactive session because one process serves many sessions, and you can start new ones from the phone when a session's context fills up.
+
+**Worktree spawn mode.** Each session you start from the phone gets its own git worktree, so two sessions working at once can't edit the same files.
+
+**tmux plus a restart loop.** The server has to outlive the Terminal window it was started in, so it runs in tmux. Anthropic documents that server mode exits after about 10 minutes without network, so `rc-loop` restarts it. A home internet blip becomes a short gap instead of a dead weekend.
+
+**`ask-local` instead of routing Claude Code to Ollama.** Remote Control refuses to connect when `ANTHROPIC_BASE_URL` points at Ollama. So sessions run on Anthropic's models and hand self-contained work to the local model through a small script. The CLAUDE.md snippet says when that's appropriate (bulk text work, synthetic test data, data that shouldn't leave the machine) and when it isn't (design, code edits, security logic).
 
 ## License
 
