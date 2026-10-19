@@ -41,7 +41,7 @@ This is a working setup, not a product. It ran a full weekend of remote work fro
 
 - A Mac that stays on, online and **awake**: Remote Control can't serve sessions while the Mac sleeps. Ours is a Mac Studio running macOS 26.
 - On a Team or Enterprise plan, an Owner must first turn on Remote Control in Claude Code admin settings.
-- Claude Code (native install) signed in with a **claude.ai subscription** (Pro, Max, Team or Enterprise). Remote Control doesn't work with an API key, and it refuses to connect if `ANTHROPIC_BASE_URL` points anywhere other than Anthropic. Environment variables that turn off feature-flag fetching (such as `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` or `DISABLE_GROWTHBOOK`) also block it. So a command that routes Claude Code to Ollama can't be used through Remote Control. That's why the local model is reached through `ask-local` instead.
+- Claude Code (native install) signed in with a **claude.ai subscription** (Pro, Max, Team or Enterprise). Remote Control doesn't work with an API key, and it refuses to connect if `ANTHROPIC_BASE_URL` points anywhere other than Anthropic. So a command that routes Claude Code to Ollama can't be used through Remote Control. Environment variables that turn off feature-flag fetching (such as `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` or `DISABLE_GROWTHBOOK`) also block it. That's why the local model is reached through `ask-local` instead.
 - `tmux` (`brew install tmux`).
 - For `ask-local`: [Ollama](https://ollama.com) running on `localhost:11434` with at least one model pulled.
 - The Claude app on your phone, signed in to the same account.

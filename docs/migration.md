@@ -57,7 +57,7 @@ If your old script didn't pass `--spawn`, this is also the first run with `--spa
 
 Do this inside the existing `rc` pane rather than a new SSH shell. That pane descends from Terminal on the Mac's own screen. Per Anthropic's docs, restarting the server in the same folder within about four hours brings back the sessions it was serving.
 
-**If sessions don't come back:** the docs say they should after a `Ctrl+C` stop, but this hasn't been observed on our machine yet. For each missing session, run `claude remote-control --session-id <id>` in the repo folder in another tmux window, using the IDs you recorded. Running it alongside the main server in the same folder is untested; if it misbehaves, stop `rc-loop`, bring the session back with `--session-id`, and start `rc-loop` again afterward.
+**If sessions don't come back:** the docs say they should after a `Ctrl+C` stop, but this hasn't been observed on our machine yet. For each missing session, open a new tmux window (`Ctrl+B`, then `C`), `cd` to the repo folder, and run `claude remote-control --session-id <id>` with an ID you recorded. Leave it running in that window: it serves only that session and exits when the session ends. Running it alongside the main server in the same folder is untested.
 
 **Rollback:** same steps, but run the old script (`~/.local/bin/rc-myproject`) in step 3. Rolling back doesn't guarantee the sessions come back either; the same `--session-id` fallback applies.
 

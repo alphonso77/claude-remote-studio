@@ -17,6 +17,9 @@ for src in "$repo"/bin/*; do
     backup="$target.pre-repo"
     [[ -e "$backup" || -L "$backup" ]] && backup="$backup.$(date +%Y%m%d-%H%M%S)"
     mv -n "$target" "$backup"
+    if [[ -e "$target" || -L "$target" ]]; then
+      echo "skipped  $name: backup name ${backup:t} is taken; rerun in a second"; continue
+    fi
     echo "moved    $target -> ${backup:t}"
   fi
   ln -s "$src" "$target"

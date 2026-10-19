@@ -21,7 +21,7 @@ Do every step in Terminal **on the Mac itself**, at its screen or over Screen Sh
 - [ ] **Make sure nothing routes Claude Code away from Anthropic.** Both lines should print `clean`:
   ```sh
   env | grep -E '^(ANTHROPIC_|CLAUDE_CODE_USE_|CLAUDE_CODE_DISABLE_NONESSENTIAL|DISABLE_GROWTHBOOK)' || echo "env: clean"
-  grep -nE 'ANTHROPIC_|apiKeyHelper' ~/.claude/settings.json 2>/dev/null || echo "settings: clean"
+  grep -nE 'ANTHROPIC_|apiKeyHelper|CLAUDE_CODE_DISABLE_NONESSENTIAL|DISABLE_GROWTHBOOK' ~/.claude/settings.json 2>/dev/null || echo "settings: clean"
   ```
   The last two variables turn off feature-flag fetching, which Remote Control needs. If you have a command that points `ANTHROPIC_BASE_URL` at Ollama (a "claude-local" style alias), that's fine to keep, but it can't be used for Remote Control sessions.
 
