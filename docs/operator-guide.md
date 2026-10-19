@@ -56,6 +56,14 @@ rc-doctor
 
 Use the full tmux path in a one-line `ssh host '…'` command, because Homebrew isn't on the PATH there.
 
+### Before a planned restart
+
+Record what you'd need to bring sessions back:
+- each session's ID: open it at claude.ai/code and copy the part of the URL between `/code/` and any `?`;
+- for sessions started from the phone, their worktree folder (`git worktree list`; the folder name contains the same ID).
+
+Pick a moment when no session is mid-task, and warn any lead session that coordinates the others: it gets interrupted too.
+
 **Restart the server on purpose** (picks up a changed `rc-loop` or config):
 
 1. Attach to `rc`, press `Ctrl+C` until you're at a shell prompt.

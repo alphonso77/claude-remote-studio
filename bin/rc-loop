@@ -23,6 +23,9 @@ case "$chrome" in
   '') ;;
   *) echo "rc-loop: ignoring RC_CHROME=$chrome (use 1, 0 or leave empty)" >&2 ;;
 esac
+# Say which claude this is: an old copy earlier in PATH (e.g. a stale npm install) would
+# otherwise fail on newer flags and restart forever.
+echo "rc-loop: $(command -v claude) ($(claude --version 2>/dev/null | head -1))"
 while true; do
   claude "${args[@]}"
   code=$?

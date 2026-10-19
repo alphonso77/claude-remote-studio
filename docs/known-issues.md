@@ -37,7 +37,7 @@ Each item says what's been **observed** on our machine, what's **documented** by
 
 **Status:** documented by Anthropic, not yet observed here.
 
-If the Mac is awake but can't reach the network, `claude remote-control` gives up after roughly 10 minutes and exits. (An interactive `claude` session keeps retrying instead.) That's the reason `rc-loop` exists. A weekend of uptime with no outage doesn't exercise it. To test it: note the session IDs (see [migration](migration.md#before-you-start)), unplug the Mac's network for 15 minutes, plug it back in, and confirm the loop restarted the server. Then check whether the existing sessions answer from the phone or whether you only get new ones.
+If the Mac is awake but can't reach the network, `claude remote-control` gives up after roughly 10 minutes and exits. (An interactive `claude` session keeps retrying instead.) That's the reason `rc-loop` exists. A weekend of uptime with no outage doesn't exercise it. To test it: note the session IDs (see the [operator guide](operator-guide.md#before-a-planned-restart)), unplug the Mac's network for 15 minutes, plug it back in, and confirm the loop restarted the server. Then check whether the existing sessions answer from the phone or whether you only get new ones.
 
 ## Which sessions come back after a restart
 
@@ -62,7 +62,19 @@ If it reproduces, it's worth reporting upstream at [anthropics/claude-code](http
 cd ~/code/my-project/.claude/worktrees/bridge-cse_<…> && claude remote-control --session-id session_<…>
 ```
 
-The session ID is the part of its claude.ai/code URL between `/code/` and any `?`. Its worktree folder name carries the same ID after `bridge-cse_` (for example, `session_01Abc…` runs in `bridge-cse_01Abc…`); `git worktree list` shows them all. The process shows `Single session · exits when complete`: it serves only that session, exits when the session ends, and isn't restarted by `rc-loop`. It's a separate process from the main server, but whether restarting the main server leaves it running is untested. The docs give a window of about four hours after the server stopped.
+The session ID is the part of its claude.ai/code URL between `/code/` and any `?`. Its worktree folder name carries the same ID after `bridge-cse_` (for example, `session_01Abc…` runs in `bridge-cse_01Abc…`); `git worktree list` shows them all. The process shows `Single session · exits when complete`: it serves only that session, exits when the session ends, and isn't restarted by `rc-loop`. The docs give a window of about four hours after the server stopped.
+
+**What happened to it at the next restart (observed 2026-10-19):** about a minute after we restarted the main server, the main server started serving that session itself, from its worktree folder. The single-session process exited at the same time. So the session ended up under `rc-loop` after all. We don't know what triggered the takeover; it may have been the first message to that session.
+
+## Session names on the Mac reset at a restart
+
+**Observed (2026-10-19):** sessions on the Mac address each other by a local name, and those names didn't survive a server restart:
+- the server's own session showed as `my-project-1a` right after the restart, then went back to its `--name` title;
+- a session that had been renamed with `/rename` came back under a generated name, `bridge-cse-<id>-<suffix>`.
+
+The short reference in brackets (`[10f36b]`) changed at every restart. From another machine, the same sessions kept showing their titles ("My project on Studio", the renamed title).
+
+So after a restart, have each session list its peers again before messaging by name. This is probably related to the rename issue at the top of this page.
 
 ## Only one server per folder
 

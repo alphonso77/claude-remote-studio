@@ -36,7 +36,7 @@ Built while building [Fratelli Software](https://fratellisoftware.com).
 | [`docs/setup-checklist.md`](docs/setup-checklist.md) | Step-by-step setup, plus a recurring "is it running as expected?" check. |
 | [`docs/operator-guide.md`](docs/operator-guide.md) | What's on the Mac's screen and what to do with it. Start here if you're running it. |
 | [`docs/known-issues.md`](docs/known-issues.md) | Open problems, unverified claims and gotchas. |
-| [`docs/migration.md`](docs/migration.md) | Moving a hand-made install onto this repo without losing your sessions. |
+| [`docs/multi-session.md`](docs/multi-session.md) | Running several cooperating sessions (lead, reviewer, smoke tester) on the Mac. |
 
 ## Requirements
 
