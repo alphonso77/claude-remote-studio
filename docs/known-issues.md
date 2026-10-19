@@ -31,7 +31,7 @@ Each item says what's been **observed** on our machine, what's **documented** by
 
 **Observed (2026-10-19):** over SSH, `gh auth status` on the Mac reported "The token in default is invalid" and `gh repo view` of a private repo failed with HTTP 401. Meanwhile, sessions on the same Mac pushed to GitHub without trouble. `gh` keeps its token in the macOS keychain, so the most likely cause is that an SSH login can't unlock the keychain. So do sign-ins, and anything that needs them (cloning a private repo, `gh` calls), from Terminal on the Mac's screen or from a session.
 
-**Still unverified for Claude Code itself:** the original setup notes said to start `claude remote-control` from the Mac's screen, not over SSH, for the same keychain reason. The `gh` result makes that likely, but Claude Code hasn't been tested over SSH. Until it is, restart the server inside the existing `rc` tmux pane (see the operator guide).
+**Observed for Claude Code too (2026-10-19):** over SSH, `claude -p` printed `Not logged in · Please run /login`, while sessions on the same Mac were signed in and working. So start or restart the server from Terminal on the Mac's screen, or inside the existing `rc` tmux pane, never from a fresh SSH shell. Attaching to `rc` over SSH and restarting there should work, because that pane's shell was started from the Mac's screen, but it's untested.
 
 ## Server mode exits after about 10 minutes offline
 
@@ -39,14 +39,55 @@ Each item says what's been **observed** on our machine, what's **documented** by
 
 If the Mac is awake but can't reach the network, `claude remote-control` gives up after roughly 10 minutes and exits. (An interactive `claude` session keeps retrying instead.) That's the reason `rc-loop` exists. A weekend of uptime with no outage doesn't exercise it. To test it: note the session IDs (see [migration](migration.md#before-you-start)), unplug the Mac's network for 15 minutes, plug it back in, and confirm the loop restarted the server. Then check whether the existing sessions answer from the phone or whether you only get new ones.
 
-## Do sessions come back after a restart? (documented for Ctrl+C only)
+## Which sessions come back after a restart
 
-Our original notes said each restart of the loop opens a brand-new session. Anthropic's docs describe two cases:
+**Observed (2026-10-19, Claude Code 2.1.301 to 2.1.302):** we stopped the server with `Ctrl+C` and started `rc-loop` in the same folder about a minute later.
 
-- **Stopped with `Ctrl+C`:** the sessions aren't archived, and running `claude remote-control` again in the same folder within about four hours brings back every session it was serving. Not yet observed here. The migration's step 3 will be the first time.
-- **Exited after about 10 minutes offline:** the docs say to run `claude remote-control` again "to start a new session". Whether the old sessions also come back in this case is **untested**. Check it as part of the unplug test above: after the loop restarts the server, see whether the phone's existing sessions answer.
+- The session the server created when it started (the one named by `--name`) came back as the same conversation, history intact.
+- A session that had been started from the phone did **not** come back. It showed as offline, and the server's capacity line read `1/32`.
 
-If a session doesn't come back, `claude remote-control --session-id <id>` brings back one session by ID (the part of its claude.ai/code URL between `/code/` and any `?`), within the same four-hour window.
+Anthropic's docs say a restart in the same folder within about four hours brings back every session the server was serving, so this differs from the docs. We don't know why.
+
+Possible causes, all unverified:
+- Restore records may be kept per folder, and phone-started sessions live in worktree folders. Anthropic's docs on `--continue` describe looking in "this directory" first and then in other worktrees. That would also explain why `--session-id` worked only from the worktree folder (below).
+- Claude Code updated from 2.1.301 to 2.1.302 at the same restart.
+
+If it reproduces, it's worth reporting upstream at [anthropics/claude-code](https://github.com/anthropics/claude-code/issues).
+
+**After the server exits because the network was down:** untested. The docs only say to run it again "to start a new session". Check it as part of the unplug test above.
+
+**Bringing a session back (observed working):** run `--session-id` from **the session's own worktree folder**, in its own tmux window (`Ctrl+B`, then `C`):
+
+```sh
+cd ~/code/my-project/.claude/worktrees/bridge-cse_<…> && claude remote-control --session-id session_<…>
+```
+
+The session ID is the part of its claude.ai/code URL between `/code/` and any `?`. Its worktree folder name carries the same ID after `bridge-cse_` (for example, `session_01Abc…` runs in `bridge-cse_01Abc…`); `git worktree list` shows them all. The process shows `Single session · exits when complete`: it serves only that session, exits when the session ends, and isn't restarted by `rc-loop`. It's a separate process from the main server, but whether restarting the main server leaves it running is untested. The docs give a window of about four hours after the server stopped.
+
+## Only one server per folder
+
+**Observed (2026-10-19):** running `claude remote-control --session-id …` in the repo folder while `rc-loop`'s server was running there failed with:
+
+```
+Error: Environment env_… is already being served by another `claude remote-control` instance (pid …) in /Users/…/my-project. Use that terminal, or stop it first.
+```
+
+Running it from a session's worktree folder works (see above).
+
+## Claude in Chrome: the browser list covers your whole account
+
+**Observed (2026-10-19):** after running `claude --chrome` on the Mac, `/chrome` listed three browsers, though the Mac had one Brave window open. The other two had connected hours earlier, matching when the browser on another of our Macs connected, so the list appears to include every browser where the extension is signed in to your account, on any machine. That's our reading of what we saw; Anthropic's docs only say you choose when more than one browser is connected. The names are generic ("Browser 1") and all three said macOS. The way to tell them apart is the connection time: the Mac's browser connected when you ran `claude --chrome` there.
+
+Pick the Mac's browser in `/chrome` under **Select browser…**. Otherwise a session on the Mac can drive a browser on another machine, with everything you're signed into there. Then ask the session to open a tab and check it appears on the right machine.
+
+**Unverified:** whether that choice carries over to new sessions started from the phone. The docs say Claude prompts you to pick a browser when none is chosen, so expect to pick once per session.
+
+Also observed:
+- That first `claude --chrome` wrote the extension's connection file for both Brave and Chrome, even though only Brave was installed.
+- It also opened browser windows during setup, including one in another Brave profile with an unrelated old tab.
+- The browser has to be running. Claude Code doesn't start it.
+
+Documented: sessions started by `claude remote-control` begin with Chrome off unless the server runs with `--chrome`, even if Chrome is enabled by default. Set `RC_CHROME=1` in `~/.config/rc-loop.env` for that.
 
 ## `claude remote-control --help` doesn't exit
 
