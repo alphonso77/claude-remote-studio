@@ -1,0 +1,15 @@
+#!/bin/zsh
+# ask-local: send a one-shot prompt to the local Ollama model.
+# usage: ask-local [-m model] "instruction"   (piped stdin is appended as input)
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+model="${ASK_LOCAL_MODEL:-qwen3.6:35b-a3b}"
+if [[ "$1" == "-m" ]]; then model="$2"; shift 2; fi
+if [[ $# -lt 1 ]]; then echo 'usage: ask-local [-m model] "instruction"' >&2; exit 2; fi
+prompt="$*"
+if ! curl -sf http://localhost:11434/api/tags >/dev/null; then
+  echo "ask-local: Ollama isn't responding on localhost:11434" >&2; exit 1
+fi
+run=(ollama run --think=false --nowordwrap "$model")
+if [[ -t 0 ]]; then exec "${run[@]}" "$prompt"; fi
+# Piped input goes to ollama on stdin, not as an argument, so it isn't capped by ARG_MAX (1 MiB on macOS).
+{ print -r -- "$prompt"; print -r -- $'\n--- input ---'; cat } | "${run[@]}"

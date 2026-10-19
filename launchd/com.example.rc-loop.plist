@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- UNTESTED. Starts the rc tmux session at login if it isn't already running.
+     Rename the label (and this file) to your own reverse-DNS name, copy it to
+     ~/Library/LaunchAgents/, then: launchctl bootstrap gui/$(id -u) <path>
+     See docs/known-issues.md ("Nothing restarts after a reboot"). -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.example.rc-loop</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string><string>-lc</string>
+    <string>export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH; sleep 20; tmux has-session -t rc 2>/dev/null || tmux new -d -s rc "$HOME/.local/bin/rc-loop"</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+</dict>
+</plist>
