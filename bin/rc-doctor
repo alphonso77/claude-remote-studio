@@ -3,6 +3,7 @@
 # Read-only. Exits non-zero if any check fails.
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 repo="${0:A:h:h}"
+[[ -f "$HOME/.config/rc-loop.env" ]] && source "$HOME/.config/rc-loop.env"
 fail=0
 pass() { echo "ok    $*"; }
 bad()  { echo "FAIL  $*"; fail=1; }
@@ -23,6 +24,15 @@ elif pgrep -f "claude remote-control" >/dev/null; then bad "a remote-control ser
 else bad "no remote-control server is running"; fi
 tmux has-session -t rc 2>/dev/null && pass "tmux session rc exists" || bad "no tmux session named rc"
 [[ "$(pmset -g 2>/dev/null | awk '$1=="sleep"{print $2}')" == 0 ]] && pass "system sleep is off" || bad "system sleep is on; Remote Control can't serve sessions while the Mac sleeps"
+if [[ "${RC_CHROME:-}" == 1 ]]; then
+  # Chrome/Brave keep it two levels down (Google/Chrome), Edge one (Microsoft Edge).
+  as="$HOME/Library/Application Support" f=NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json
+  hosts=( "$as"/*/$f(N) "$as"/*/*/$f(N) )
+  (( ${#hosts} )) && pass "Claude in Chrome connection file exists (${#hosts} browser(s))" \
+    || bad "RC_CHROME=1 but no Claude in Chrome connection file; run claude --chrome once on the Mac's screen"
+  pgrep -xq "Brave Browser" || pgrep -xq "Google Chrome" || pgrep -xq "Microsoft Edge" \
+    && pass "a Chromium browser is running" || bad "RC_CHROME=1 but no supported browser is running; Claude Code doesn't start it"
+fi
 # Ollama is optional, so its absence is a note, not a failure.
 curl -sf http://localhost:11434/api/tags >/dev/null && pass "Ollama answers on :11434" || note "Ollama isn't answering on :11434 (only matters if you use ask-local)"
 exit $fail

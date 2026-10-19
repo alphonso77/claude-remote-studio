@@ -8,6 +8,7 @@ repo="${1:-${RC_REPO:-}}"
 name="${2:-${RC_NAME:-}}"
 spawn="${RC_SPAWN:-worktree}"
 delay="${RC_RESTART_DELAY:-30}"
+chrome="${RC_CHROME:-}"
 if [[ -z "$repo" ]]; then
   echo 'usage: rc-loop [repo-dir] [session-name]   (or set RC_REPO in ~/.config/rc-loop.env)' >&2; exit 2
 fi
@@ -15,6 +16,11 @@ cd "$repo" || { echo "rc-loop: repo not found: $repo" >&2; exit 1; }
 # Passing --spawn means a restart never stops at the interactive spawn-mode question.
 args=(remote-control --spawn="$spawn")
 [[ -n "$name" ]] && args+=(--name "$name")
+# Sessions the server starts have Chrome off unless the server gets --chrome.
+case "$chrome" in
+  1) args+=(--chrome) ;;
+  0) args+=(--no-chrome) ;;
+esac
 while true; do
   claude "${args[@]}"
   code=$?
