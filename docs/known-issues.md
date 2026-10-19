@@ -72,7 +72,7 @@ The session ID is the part of its claude.ai/code URL between `/code/` and any `?
 - the server's own session showed as `my-project-1a` right after the restart, then went back to its `--name` title;
 - a session that had been renamed with `/rename` came back under a generated name, `bridge-cse-<id>-<suffix>`.
 
-The short reference in brackets (`[10f36b]`) changed at every restart. From another machine, the same sessions kept showing their titles ("My project on Studio", the renamed title).
+The short reference in brackets (such as `[abc123]`) changed at every restart. From another machine, the same sessions kept showing their titles ("My project on Studio", the renamed title).
 
 So after a restart, have each session list its peers again before messaging by name. This is probably related to the rename issue at the top of this page.
 
