@@ -78,6 +78,20 @@ Do this in the existing `rc` pane rather than a new SSH shell. That pane descend
 
 **Context getting full in a session:** `/context` shows how full it is, `/compact` summarizes and continues, `/clear` starts fresh, or start a new session from the Code tab. These, plus `/model`, `/effort`, `/rename`, `/usage` and `/config key=value`, work from the phone. `/resume` and `/plugin` only work in the Mac's terminal.
 
+<a id="stand-down-a-session"></a>**Stand down a session** (its work is done, or another session or machine takes over its role). An idle session uses almost no CPU but keeps holding memory. On our Mac, each session process held about 450–600 MB, and the server about 180 MB. It also leaves a git worktree on disk, plus any dev servers it started.
+
+1. **Hand off first** if another session takes over the role. Have it send its handoff (role, open items, branches, anything in flight) **as a message** to the successor, or put it somewhere both can read, such as an issue tracker or the repo. Claude Code's memory files are per machine, so a handoff saved in one machine's memory folder isn't visible from the other. Wait for the successor to confirm it has the handoff.
+2. **Wrap up its work.** It commits and pushes, stops any dev servers or previews it started, and tells you its worktree folder.
+3. **Type `/exit` in that session.** It works from the phone, Desktop or claude.ai as well as the terminal, and it ends that session's process on the Mac.
+   - Don't kill the process by its PID instead. The server serves a crashed session again when it's next messaged (documented), so a peer messaging it would bring it back.
+4. **Check that it's gone.** On the Mac, run `pgrep -P $(pgrep -f '^claude remote-control') -fl`. The session's `cse_…` ID should no longer appear, and other sessions should no longer list it.
+5. **Remove its worktree** once everything is pushed: `git -C ~/code/my-project worktree remove <folder>`. After that, the session can't be brought back with `--session-id`, so do this last.
+6. Optionally archive it at claude.ai/code to tidy the list. Do `/exit` first: whether archiving alone stops the process on the Mac is untested.
+
+The server's own session (the `--name` one) stands down the same way. The server keeps running, and whether it recreates that session at its next restart is untested.
+
+To stand down the whole Mac but keep it available, exit the sessions and leave the server running: it costs little, and you can still start sessions from the phone. To stop it completely, see the next item.
+
 **Stop everything** (back home, or for maintenance):
 
 ```sh
