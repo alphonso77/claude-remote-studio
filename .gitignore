@@ -1,0 +1,3 @@
+# Local config is machine-specific; only the .example is tracked.
+config/*.env
+.DS_Store
