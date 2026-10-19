@@ -1,3 +1,85 @@
 # claude-remote-studio
 
-Run Claude Code on a home Mac and drive it from your phone. Work in progress.
+Run Claude Code on a Mac at home and drive it from your phone. The Mac keeps working on your repo while you're on a plane or in another city. Claude can also hand bulk text work to a model running locally in Ollama, so that work, and any private data in it, stays on the Mac.
+
+This is a working setup, not a product. It ran a full weekend of remote work from an iPhone, including a flight, with no restarts. Everything here is plain zsh, tmux and Claude Code's own Remote Control feature.
+
+```
+ iPhone (Claude app, Code tab)              Mac at home ("the Studio")
+ or claude.ai/code in a browser            ┌──────────────────────────────────────────┐
+            │                              │ tmux session "rc"                        │
+            │   Anthropic relays           │  └─ rc-loop  (restarts on exit)          │
+            └──────── messages ───────────▶│      └─ claude remote-control            │
+                     (outbound HTTPS        │           --spawn=worktree --name …      │
+                      only; no open ports)  │           ├─ session 1  (repo dir)       │
+                                            │           ├─ session 2  (git worktree)   │
+                                            │           └─ …  up to 32                 │
+                                            │                                          │
+                                            │  any session ──▶ ask-local ──▶ Ollama    │
+                                            │                  (localhost:11434)       │
+                                            └──────────────────────────────────────────┘
+```
+
+## What's in here
+
+| Path | What it is |
+|---|---|
+| `bin/rc-loop` | Runs `claude remote-control` in your repo and restarts it 30s after it exits. |
+| `bin/ask-local` | Sends one prompt (plus anything piped in) to a local Ollama model and prints the answer. |
+| `bin/rc-doctor` | Read-only health check: links, clone state, server, tmux, Ollama. |
+| `install.sh` | Symlinks `bin/*` into `~/.local/bin`, so this clone is the only copy of the scripts. |
+| `config/rc-loop.env.example` | Settings for `rc-loop`. Copy it to `~/.config/rc-loop.env`. |
+| `claude-md/local-model.md` | A CLAUDE.md section that tells Claude when to use `ask-local` and when not to. |
+| `launchd/` | Optional, untested: start the tmux session at login. |
+| [`docs/setup-checklist.md`](docs/setup-checklist.md) | Step-by-step setup, plus a recurring "is it running as expected?" check. |
+| [`docs/operator-guide.md`](docs/operator-guide.md) | What's on the Mac's screen and what to do with it. Start here if you're running it. |
+| [`docs/known-issues.md`](docs/known-issues.md) | Open problems, unverified claims and gotchas. |
+| [`docs/migration.md`](docs/migration.md) | Moving a hand-made install onto this repo without losing your sessions. |
+| [`docs/history.md`](docs/history.md) | How this setup was built, and why each piece exists. |
+
+## Requirements
+
+- A Mac that stays on and online. Ours is a Mac Studio running macOS 26.
+- Claude Code (native install) signed in with a **claude.ai subscription** (Pro, Max, Team or Enterprise). Remote Control doesn't work with an API key, and it refuses to connect if `ANTHROPIC_BASE_URL` points anywhere other than Anthropic. So a command that routes Claude Code to Ollama can't be used through Remote Control. That's why the local model is reached through `ask-local` instead.
+- `tmux` (`brew install tmux`).
+- For `ask-local`: [Ollama](https://ollama.com) running on `localhost:11434` with at least one model pulled.
+- The Claude app on your phone, signed in to the same account.
+
+## Quick start
+
+The full walkthrough, with checks, is the [setup checklist](docs/setup-checklist.md). The short version, on the Mac, in Terminal on its own screen (or over Screen Sharing):
+
+```sh
+git clone https://github.com/alphonso77/claude-remote-studio ~/code/claude-remote-studio
+~/code/claude-remote-studio/install.sh
+
+cp ~/code/claude-remote-studio/config/rc-loop.env.example ~/.config/rc-loop.env
+$EDITOR ~/.config/rc-loop.env           # set RC_REPO and RC_NAME
+
+tmux new -s rc                           # then, inside tmux:
+rc-loop
+```
+
+The first run asks `Enable Remote Control? (y/n)`. Answer `y`. When it shows **Connected** and your session name, detach with `Ctrl+B` then `D`. The server keeps running.
+
+On the phone: Claude app → **Code** → tap your session name. Press space in the server window to show a QR code if you'd rather scan.
+
+To let Claude use the local model, add one line to `~/.claude/CLAUDE.md`:
+
+```
+@~/code/claude-remote-studio/claude-md/local-model.md
+```
+
+Then run `/permissions` in a session and allow `Bash(~/.local/bin/ask-local:*)` so hand-offs don't need a tap each time.
+
+Check everything with `rc-doctor`.
+
+## Before you leave the house
+
+- Test from the phone **with Wi-Fi off**, so you're testing the same path you'll use when you're away.
+- Turn on push notifications: in a session, `/config`, then enable push for actions that need you and for when Claude finishes. Permission prompts then reach your phone.
+- Know what this setup does **not** survive: a reboot or power loss (see [known issues](docs/known-issues.md)).
+
+## License
+
+MIT

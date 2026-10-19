@@ -1,0 +1,23 @@
+#!/bin/zsh
+# rc-loop: keep a Claude Code Remote Control server running; restart it if it exits.
+# usage: rc-loop [repo-dir] [session-name]
+# Defaults come from ~/.config/rc-loop.env (see config/rc-loop.env.example).
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+[[ -f "$HOME/.config/rc-loop.env" ]] && source "$HOME/.config/rc-loop.env"
+repo="${1:-${RC_REPO:-}}"
+name="${2:-${RC_NAME:-}}"
+spawn="${RC_SPAWN:-worktree}"
+delay="${RC_RESTART_DELAY:-30}"
+if [[ -z "$repo" ]]; then
+  echo 'usage: rc-loop [repo-dir] [session-name]   (or set RC_REPO in ~/.config/rc-loop.env)' >&2; exit 2
+fi
+cd "$repo" || { echo "rc-loop: repo not found: $repo" >&2; exit 1; }
+# Passing --spawn means a restart never stops at the interactive spawn-mode question.
+args=(remote-control --spawn="$spawn")
+[[ -n "$name" ]] && args+=(--name "$name")
+while true; do
+  claude "${args[@]}"
+  code=$?
+  echo "$(date '+%a %H:%M') remote-control exited ($code). Restarting in ${delay}s; press Ctrl+C to stop."
+  sleep "$delay"
+done

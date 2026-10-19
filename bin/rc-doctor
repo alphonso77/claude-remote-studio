@@ -1,0 +1,26 @@
+#!/bin/zsh
+# rc-doctor: check that the installed setup matches the repo and is running.
+# Read-only. Exits non-zero if any check fails.
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+repo="${0:A:h:h}"
+fail=0
+pass() { echo "ok    $*"; }
+bad()  { echo "FAIL  $*"; fail=1; }
+for src in "$repo"/bin/*; do
+  t="$HOME/.local/bin/${src:t}"
+  if [[ -L "$t" && "${t:A}" == "${src:A}" ]]; then pass "${src:t} links into the clone"
+  else bad "${src:t} is not a link into $repo (run install.sh)"; fi
+done
+if [[ -z "$(git -C "$repo" status --porcelain)" ]]; then pass "clone has no local edits"
+else bad "clone has local edits; commit them upstream instead of editing on this machine"; fi
+git -C "$repo" fetch -q origin 2>/dev/null
+behind=$(git -C "$repo" rev-list --count HEAD..origin/main 2>/dev/null)
+if [[ "$behind" == 0 ]]; then pass "clone is at origin/main"
+else bad "clone is ${behind:-?} commits behind origin/main (git pull)"; fi
+[[ -f "$HOME/.config/rc-loop.env" ]] && pass "~/.config/rc-loop.env exists" || bad "~/.config/rc-loop.env missing"
+if pgrep -f "rc-loop" >/dev/null; then pass "rc-loop is running"
+elif pgrep -f "claude remote-control" >/dev/null; then bad "a remote-control server is running, but not under rc-loop (pre-migration script?)"
+else bad "no remote-control server is running"; fi
+tmux has-session -t rc 2>/dev/null && pass "tmux session rc exists" || bad "no tmux session named rc"
+curl -sf http://localhost:11434/api/tags >/dev/null && pass "Ollama answers on :11434" || bad "Ollama isn't answering on :11434"
+exit $fail
