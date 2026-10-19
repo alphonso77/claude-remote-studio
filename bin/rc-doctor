@@ -6,6 +6,7 @@ repo="${0:A:h:h}"
 fail=0
 pass() { echo "ok    $*"; }
 bad()  { echo "FAIL  $*"; fail=1; }
+note() { echo "note  $*"; }
 for src in "$repo"/bin/*; do
   t="$HOME/.local/bin/${src:t}"
   if [[ -L "$t" && "${t:A}" == "${src:A}" ]]; then pass "${src:t} links into the clone"
@@ -21,5 +22,7 @@ if pgrep -f "rc-loop" >/dev/null; then pass "rc-loop is running"
 elif pgrep -f "claude remote-control" >/dev/null; then bad "a remote-control server is running, but not under rc-loop (pre-migration script?)"
 else bad "no remote-control server is running"; fi
 tmux has-session -t rc 2>/dev/null && pass "tmux session rc exists" || bad "no tmux session named rc"
-curl -sf http://localhost:11434/api/tags >/dev/null && pass "Ollama answers on :11434" || bad "Ollama isn't answering on :11434"
+[[ "$(pmset -g 2>/dev/null | awk '$1=="sleep"{print $2}')" == 0 ]] && pass "system sleep is off" || bad "system sleep is on; Remote Control can't serve sessions while the Mac sleeps"
+# Ollama is optional, so its absence is a note, not a failure.
+curl -sf http://localhost:11434/api/tags >/dev/null && pass "Ollama answers on :11434" || note "Ollama isn't answering on :11434 (only matters if you use ask-local)"
 exit $fail

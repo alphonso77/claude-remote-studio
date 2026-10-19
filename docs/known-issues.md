@@ -35,11 +35,16 @@ The original setup notes said to start `claude remote-control` from Terminal on 
 
 **Status:** documented by Anthropic, not yet observed here.
 
-If the Mac is awake but can't reach the network, `claude remote-control` gives up after roughly 10 minutes and exits. (An interactive `claude` session keeps retrying instead.) That's the reason `rc-loop` exists. A weekend of uptime with no outage doesn't exercise it. To test it: unplug the Mac's network for 15 minutes, plug it back in, and confirm the loop restarted the server and the phone reconnects.
+If the Mac is awake but can't reach the network, `claude remote-control` gives up after roughly 10 minutes and exits. (An interactive `claude` session keeps retrying instead.) That's the reason `rc-loop` exists. A weekend of uptime with no outage doesn't exercise it. To test it: note the session IDs (see [migration](migration.md#before-you-start)), unplug the Mac's network for 15 minutes, plug it back in, and confirm the loop restarted the server. Then check whether the existing sessions answer from the phone or whether you only get new ones.
 
-## Restarting the server brings sessions back (documented, not yet observed)
+## Do sessions come back after a restart? (documented for Ctrl+C only)
 
-Our original notes said each restart of the loop opens a brand-new session. Anthropic's docs say otherwise: stopping the server with `Ctrl+C` doesn't archive its sessions, and running `claude remote-control` again in the same folder within about four hours brings back every session it was serving. `rc-loop` restarts after 30 seconds, so a restart should reconnect your phone sessions. We should confirm this the first time the loop restarts for real.
+Our original notes said each restart of the loop opens a brand-new session. Anthropic's docs describe two cases:
+
+- **Stopped with `Ctrl+C`:** the sessions aren't archived, and running `claude remote-control` again in the same folder within about four hours brings back every session it was serving. Not yet observed here. The migration's step 3 will be the first time.
+- **Exited after about 10 minutes offline:** the docs say to run `claude remote-control` again "to start a new session". Whether the old sessions also come back in this case is **untested**. Check it as part of the unplug test above: after the loop restarts the server, see whether the phone's existing sessions answer.
+
+If a session doesn't come back, `claude remote-control --session-id <id>` brings back one session by ID (the part of its claude.ai/code URL between `/code/` and any `?`), within the same four-hour window.
 
 ## `claude remote-control --help` doesn't exit
 
@@ -48,3 +53,7 @@ Our original notes said each restart of the loop opens a brand-new session. Anth
 ## First-run questions can block a restart
 
 `claude remote-control` asks two questions on first run: whether to enable Remote Control, and which spawn mode to use. If either is asked again after the loop restarts it, the server sits waiting for a key press in the tmux window, which you can't see from your phone. `rc-loop` passes `--spawn`, which removes the spawn-mode question. The enable question is supposed to be one-time, but that's untested across restarts.
+
+## Some small models print their reasoning anyway
+
+**Observed (2026-10-19):** with `qwen3:4b`, `ask-local` output includes the model's reasoning and a `</think>` tag before the answer, despite `--think=false`. With `qwen3.6:35b-a3b` (the default) the output is just the answer. If you switch models, check the output is clean before scripts depend on it, or take the text after the last `</think>`.

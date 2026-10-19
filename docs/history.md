@@ -25,5 +25,5 @@ A weekend trip out of town, with work in progress on a software project. The aim
 
 ## Corrections since then
 
-- The Friday notes said each loop restart opens a new session and that `--continue` was too risky to use. Anthropic's docs say a plain restart within about four hours brings back all the server's sessions, which makes the loop better than we thought. See [known issues](known-issues.md).
+- The Friday notes said each loop restart opens a new session and that `--continue` was too risky to use. Anthropic's docs say that after a `Ctrl+C` stop, a plain restart within about four hours brings back all the server's sessions. After the server exits on its own because the network was down, though, the docs say to "start a new session", so whether the loop brings sessions back in that case is untested. See [known issues](known-issues.md).
 - The Friday notes said `--spawn=worktree` should be added to the script so a restart can't stall on the spawn-mode question. It wasn't added at the time. `rc-loop` now does it.

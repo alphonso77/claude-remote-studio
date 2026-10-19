@@ -20,10 +20,16 @@ Do every step in Terminal **on the Mac itself**, at its screen or over Screen Sh
   ```
 - [ ] **Make sure nothing routes Claude Code away from Anthropic.** Both lines should print `clean`:
   ```sh
-  env | grep -E '^(ANTHROPIC_|CLAUDE_CODE_USE_)' || echo "env: clean"
+  env | grep -E '^(ANTHROPIC_|CLAUDE_CODE_USE_|CLAUDE_CODE_DISABLE_NONESSENTIAL|DISABLE_GROWTHBOOK)' || echo "env: clean"
   grep -nE 'ANTHROPIC_|apiKeyHelper' ~/.claude/settings.json 2>/dev/null || echo "settings: clean"
   ```
-  If you have a command that points `ANTHROPIC_BASE_URL` at Ollama (a "claude-local" style alias), that's fine to keep, but it can't be used for Remote Control sessions.
+  The last two variables turn off feature-flag fetching, which Remote Control needs. If you have a command that points `ANTHROPIC_BASE_URL` at Ollama (a "claude-local" style alias), that's fine to keep, but it can't be used for Remote Control sessions.
+
+- [ ] **On a Team or Enterprise plan:** an Owner has turned on Remote Control in Claude Code admin settings.
+- [ ] **The Mac won't sleep.** Remote Control can't serve sessions while it sleeps. In System Settings → Energy, turn on "Prevent automatic sleeping when the display is off", then check that this prints `0`:
+  ```sh
+  pmset -g | awk '$1=="sleep"{print $2}'
+  ```
 
 ## 2. Your repo and tools
 
@@ -51,7 +57,7 @@ Do every step in Terminal **on the Mac itself**, at its screen or over Screen Sh
 - [ ] **`ask-local` works:**
   ```sh
   ask-local "Reply with one word: ready"
-  echo "jon smith, JSmith@Example.co, (555) 555-0142" | ask-local "Normalize this contact to JSON with first, last, email, phone. Output only JSON."
+  echo "jon smith, JSmith@example.com, (555) 555-0142" | ask-local "Normalize this contact to JSON with first, last, email, phone. Output only JSON."
   ```
   The first call can take a while as the model loads.
 - [ ] **Claude knows when to use it.** Add this line to `~/.claude/CLAUDE.md`, then edit the snippet's examples to suit your work:
@@ -72,12 +78,16 @@ Do every step in Terminal **on the Mac itself**, at its screen or over Screen Sh
   cp ~/code/claude-remote-studio/config/rc-loop.env.example ~/.config/rc-loop.env
   $EDITOR ~/.config/rc-loop.env      # RC_REPO, RC_NAME
   ```
+  Point `RC_REPO` at a git repository, not your home folder: worktree mode needs a git repo, and starting in your home folder can bring up the folder-trust question on every start.
+  ```sh
+  rc-doctor   # expect failures for the server and tmux until step 6
+  ```
 - [ ] **tmux is installed:** `command -v tmux || brew install tmux`
 
 ## 5. One-time session settings
 
 - [ ] Start a normal session in your repo (`cd ~/code/my-project && claude`) and say yes if it asks to trust the folder.
-- [ ] `/config`: turn on push notifications for actions that need you and for when Claude finishes or needs a decision.
+- [ ] `/config`: turn on **Push when actions required** and **Push when Claude decides**.
 - [ ] `/permissions`: add an allow rule `Bash(~/.local/bin/ask-local:*)` (optional; otherwise approve from the phone each time).
 - [ ] `/exit`.
 
@@ -111,7 +121,7 @@ Run this any time, on the Mac or over SSH:
 rc-doctor
 ```
 
-- [ ] Every line says `ok`.
+- [ ] Every line says `ok` (`note` lines are informational, for example when you don't use Ollama).
 - [ ] In the `rc` tmux window (`tmux attach -t rc`), the top line says **Connected**, and the capacity count matches the number of sessions you expect.
 - [ ] The phone shows your sessions with a green dot.
 

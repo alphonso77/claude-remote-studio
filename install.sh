@@ -1,6 +1,7 @@
 #!/bin/zsh
 # install.sh: link this repo's scripts into ~/.local/bin so the clone is the only copy.
-# An existing regular file is moved aside to <name>.pre-repo, never overwritten.
+# An existing file is moved aside to <name>.pre-repo (or .pre-repo.<timestamp> if that
+# name is taken), so no backup is ever overwritten.
 # It doesn't touch running processes, ~/.claude/CLAUDE.md or ~/.config/rc-loop.env.
 set -e
 repo="${0:A:h}"
@@ -13,8 +14,10 @@ for src in "$repo"/bin/*; do
     echo "ok       $name (already linked)"; continue
   fi
   if [[ -e "$target" || -L "$target" ]]; then
-    mv "$target" "$target.pre-repo"
-    echo "moved    $target -> $name.pre-repo"
+    backup="$target.pre-repo"
+    [[ -e "$backup" || -L "$backup" ]] && backup="$backup.$(date +%Y%m%d-%H%M%S)"
+    mv -n "$target" "$backup"
+    echo "moved    $target -> ${backup:t}"
   fi
   ln -s "$src" "$target"
   echo "linked   $target -> $src"

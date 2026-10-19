@@ -62,11 +62,11 @@ Use the full tmux path in a one-line `ssh host '…'` command, because Homebrew 
 2. Run `rc-loop`.
 3. Detach.
 
-Do this in the existing `rc` pane rather than a new SSH shell. That pane descends from a Terminal opened on the Mac's own screen, which avoids the open question about starting the server over SSH (see [known issues](known-issues.md)). Per Anthropic's docs, restarting the server in the same folder within about four hours brings back the sessions it was serving, so phone sessions should reconnect.
+Do this in the existing `rc` pane rather than a new SSH shell. That pane descends from a Terminal opened on the Mac's own screen, which avoids the open question about starting the server over SSH (see [known issues](known-issues.md)). Per Anthropic's docs, after a `Ctrl+C` stop, restarting the server in the same folder within about four hours brings back the sessions it was serving, so phone sessions should reconnect. Don't do this from a session the server is serving: stopping the server ends that session too.
 
 **A phone session stopped responding:** send it another message. In server mode, a crashed session is served again when you message it; no restart needed.
 
-**No green dot on the phone:** probably a network problem at home. If the Mac was offline for more than about 10 minutes, the server gave up and exited, and `rc-loop` restarts it 30 seconds later. Give it a couple of minutes after the network is back.
+**No green dot on the phone:** probably a network problem at home. If the Mac was offline for more than about 10 minutes, the server gave up and exited, and `rc-loop` restarts it 30 seconds later. Give it a couple of minutes after the network is back. Whether your existing sessions come back after that kind of exit is untested; you may need to start new ones from the Code tab (see [known issues](known-issues.md)).
 
 **Context getting full in a session:** `/context` shows how full it is, `/compact` summarizes and continues, `/clear` starts fresh, or start a new session from the Code tab. These, plus `/model`, `/effort`, `/rename`, `/usage` and `/config key=value`, work from the phone. `/resume` and `/plugin` only work in the Mac's terminal.
 

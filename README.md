@@ -1,6 +1,6 @@
 # claude-remote-studio
 
-Run Claude Code on a Mac at home and drive it from your phone. The Mac keeps working on your repo while you're on a plane or in another city. Claude can also hand bulk text work to a model running locally in Ollama, so that work, and any private data in it, stays on the Mac.
+Run Claude Code on a Mac at home and drive it from your phone. The Mac keeps working on your repo while you're on a plane or in another city. Claude can also hand bulk text work to a model running locally in Ollama. The input you pipe to it is processed on the Mac and never sent to Anthropic; only what the local model writes back goes into the Claude session, so ask it for aggregate or redacted answers when the input is private.
 
 This is a working setup, not a product. It ran a full weekend of remote work from an iPhone, including a flight, with no restarts. Everything here is plain zsh, tmux and Claude Code's own Remote Control feature.
 
@@ -39,8 +39,9 @@ This is a working setup, not a product. It ran a full weekend of remote work fro
 
 ## Requirements
 
-- A Mac that stays on and online. Ours is a Mac Studio running macOS 26.
-- Claude Code (native install) signed in with a **claude.ai subscription** (Pro, Max, Team or Enterprise). Remote Control doesn't work with an API key, and it refuses to connect if `ANTHROPIC_BASE_URL` points anywhere other than Anthropic. So a command that routes Claude Code to Ollama can't be used through Remote Control. That's why the local model is reached through `ask-local` instead.
+- A Mac that stays on, online and **awake**: Remote Control can't serve sessions while the Mac sleeps. Ours is a Mac Studio running macOS 26.
+- On a Team or Enterprise plan, an Owner must first turn on Remote Control in Claude Code admin settings.
+- Claude Code (native install) signed in with a **claude.ai subscription** (Pro, Max, Team or Enterprise). Remote Control doesn't work with an API key, and it refuses to connect if `ANTHROPIC_BASE_URL` points anywhere other than Anthropic. Environment variables that turn off feature-flag fetching (such as `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` or `DISABLE_GROWTHBOOK`) also block it. So a command that routes Claude Code to Ollama can't be used through Remote Control. That's why the local model is reached through `ask-local` instead.
 - `tmux` (`brew install tmux`).
 - For `ask-local`: [Ollama](https://ollama.com) running on `localhost:11434` with at least one model pulled.
 - The Claude app on your phone, signed in to the same account.
@@ -77,7 +78,7 @@ Check everything with `rc-doctor`.
 ## Before you leave the house
 
 - Test from the phone **with Wi-Fi off**, so you're testing the same path you'll use when you're away.
-- Turn on push notifications: in a session, `/config`, then enable push for actions that need you and for when Claude finishes. Permission prompts then reach your phone.
+- Turn on push notifications: in a session, run `/config` and turn on **Push when actions required** and **Push when Claude decides**. Permission prompts then reach your phone.
 - Know what this setup does **not** survive: a reboot or power loss (see [known issues](docs/known-issues.md)).
 
 ## License

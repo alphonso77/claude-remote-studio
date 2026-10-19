@@ -7,16 +7,25 @@ Only one step interrupts your phone sessions, and only for about a minute.
 ## Before you start
 
 - Note what's running: `pgrep -fl "remote-control"` and `tmux ls`.
-- Diff your hand-made scripts against the repo's. Anything you changed by hand either goes into the repo first (by PR) or is dropped on purpose.
-  ```sh
-  diff ~/.local/bin/ask-local ~/code/claude-remote-studio/bin/ask-local
-  diff ~/.local/bin/rc-myproject ~/code/claude-remote-studio/bin/rc-loop   # expect differences: rc-loop reads a config file
-  ```
+- **Record each session's ID.** Open each session at claude.ai/code and copy the part of its URL between `/code/` and any `?`. If a session doesn't come back after the restart in step 3, `claude remote-control --session-id <id>` (run in the same folder within about four hours) brings that one back. This is the last resort for both the switch and the rollback.
+- Do the steps from a terminal on the Mac or over SSH, **not from a session this server is serving**. Step 3 stops the server, which ends that session mid-step.
 
 ## Step 1: clone and install (no downtime)
 
 ```sh
 git clone https://github.com/alphonso77/claude-remote-studio ~/code/claude-remote-studio
+```
+
+Before installing, diff your hand-made scripts against the clone. Anything you changed by hand either goes into the repo first (by PR) or is dropped on purpose.
+
+```sh
+diff ~/.local/bin/ask-local ~/code/claude-remote-studio/bin/ask-local
+diff ~/.local/bin/rc-myproject ~/code/claude-remote-studio/bin/rc-loop   # expect differences: rc-loop reads a config file
+```
+
+Then install:
+
+```sh
 ~/code/claude-remote-studio/install.sh
 ```
 
@@ -38,6 +47,8 @@ Keep anything specific to you (your project's example data, other sections) in y
 
 Pick a moment when **no session is in the middle of a task**: anything mid-turn is interrupted.
 
+If your old script didn't pass `--spawn`, this is also the first run with `--spawn=worktree` set explicitly. It should match what you chose at the first-run prompt, but check the `Capacity` line says new sessions get an isolated worktree.
+
 1. Attach: `tmux attach -t rc`.
 2. Press `Ctrl+C`. If the `Restarting in 30s` line appears, press it again, until you're at a shell prompt.
 3. Run `rc-loop`. Wait for **Connected**.
@@ -46,7 +57,9 @@ Pick a moment when **no session is in the middle of a task**: anything mid-turn 
 
 Do this inside the existing `rc` pane rather than a new SSH shell. That pane descends from Terminal on the Mac's own screen. Per Anthropic's docs, restarting the server in the same folder within about four hours brings back the sessions it was serving.
 
-**Rollback:** same steps, but run the old script (`~/.local/bin/rc-myproject`) in step 3.
+**If sessions don't come back:** the docs say they should after a `Ctrl+C` stop, but this hasn't been observed on our machine yet. For each missing session, run `claude remote-control --session-id <id>` in the repo folder in another tmux window, using the IDs you recorded. Running it alongside the main server in the same folder is untested; if it misbehaves, stop `rc-loop`, bring the session back with `--session-id`, and start `rc-loop` again afterward.
+
+**Rollback:** same steps, but run the old script (`~/.local/bin/rc-myproject`) in step 3. Rolling back doesn't guarantee the sessions come back either; the same `--session-id` fallback applies.
 
 ## Step 4: confirm and clean up
 
