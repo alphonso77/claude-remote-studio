@@ -14,9 +14,8 @@ done
 if [[ -z "$(git -C "$repo" status --porcelain)" ]]; then pass "clone has no local edits"
 else bad "clone has local edits; commit them upstream instead of editing on this machine"; fi
 git -C "$repo" fetch -q origin 2>/dev/null
-behind=$(git -C "$repo" rev-list --count HEAD..origin/main 2>/dev/null)
-if [[ "$behind" == 0 ]]; then pass "clone is at origin/main"
-else bad "clone is ${behind:-?} commits behind origin/main (git pull)"; fi
+if [[ "$(git -C "$repo" rev-parse HEAD)" == "$(git -C "$repo" rev-parse origin/main 2>/dev/null)" ]]; then pass "clone is at origin/main"
+else bad "clone isn't at origin/main (on $(git -C "$repo" branch --show-current); git switch main && git pull)"; fi
 [[ -f "$HOME/.config/rc-loop.env" ]] && pass "~/.config/rc-loop.env exists" || bad "~/.config/rc-loop.env missing"
 if pgrep -f "rc-loop" >/dev/null; then pass "rc-loop is running"
 elif pgrep -f "claude remote-control" >/dev/null; then bad "a remote-control server is running, but not under rc-loop (pre-migration script?)"
