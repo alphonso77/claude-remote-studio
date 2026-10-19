@@ -97,7 +97,7 @@ Only if sessions on this Mac should drive a browser, for example a smoke-test se
 
 - [ ] **A supported browser with the extension:** Chrome, Edge, or a Chromium browser such as Brave. Install the [Claude extension](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) and sign in to the same claude.ai account and organization as Claude Code. Sign in to the sites you'll test, too.
 - [ ] **Connect it once, on the Mac's screen:** run `claude --chrome`, then `/chrome`. Expect `Extension: Installed`. If it isn't detected, restart the browser: it reads Claude Code's connection file only at startup.
-- [ ] **Pick this Mac's browser.** `/chrome` lists every browser signed in to your account, on all your machines. Choose the one that connected just now (**Select browser…**), ask Claude to open a tab, and check it appears on this Mac.
+- [ ] **Pick this Mac's browser.** `/chrome` can also list browsers on your other machines (we saw this; see [known issues](known-issues.md#claude-in-chrome-the-browser-list-covers-your-whole-account)), under generic names. Choose the one that connected just now (**Select browser…**), ask Claude to open a tab, and check it appears on this Mac.
 - [ ] **Leave the browser running.** Claude Code doesn't start it.
 - [ ] **Turn Chrome on for the server's sessions:** add `RC_CHROME=1` to `~/.config/rc-loop.env`. Sessions started by the server have Chrome off without it. `rc-doctor` then also checks the connection file and that a browser is running.
 

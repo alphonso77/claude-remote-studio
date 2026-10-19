@@ -20,6 +20,8 @@ args=(remote-control --spawn="$spawn")
 case "$chrome" in
   1) args+=(--chrome) ;;
   0) args+=(--no-chrome) ;;
+  '') ;;
+  *) echo "rc-loop: ignoring RC_CHROME=$chrome (use 1, 0 or leave empty)" >&2 ;;
 esac
 while true; do
   claude "${args[@]}"

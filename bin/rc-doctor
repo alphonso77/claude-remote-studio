@@ -28,10 +28,14 @@ if [[ "${RC_CHROME:-}" == 1 ]]; then
   # Chrome/Brave keep it two levels down (Google/Chrome), Edge one (Microsoft Edge).
   as="$HOME/Library/Application Support" f=NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json
   hosts=( "$as"/*/$f(N) "$as"/*/*/$f(N) )
-  (( ${#hosts} )) && pass "Claude in Chrome connection file exists (${#hosts} browser(s))" \
+  # claude --chrome writes these for browsers that aren't installed too, so this only proves setup ran.
+  (( ${#hosts} )) && pass "Claude in Chrome connection file exists (${#hosts} folder(s); /chrome shows whether it's connected)" \
     || bad "RC_CHROME=1 but no Claude in Chrome connection file; run claude --chrome once on the Mac's screen"
-  pgrep -xq "Brave Browser" || pgrep -xq "Google Chrome" || pgrep -xq "Microsoft Edge" \
-    && pass "a Chromium browser is running" || bad "RC_CHROME=1 but no supported browser is running; Claude Code doesn't start it"
+  running=""
+  for b in "Google Chrome" "Microsoft Edge" "Brave Browser" "Arc" "Vivaldi" "Opera"; do
+    pgrep -xq "$b" && { running="$b"; break; }
+  done
+  [[ -n "$running" ]] && pass "$running is running" || bad "RC_CHROME=1 but no supported browser is running; Claude Code doesn't start it"
 fi
 # Ollama is optional, so its absence is a note, not a failure.
 curl -sf http://localhost:11434/api/tags >/dev/null && pass "Ollama answers on :11434" || note "Ollama isn't answering on :11434 (only matters if you use ask-local)"

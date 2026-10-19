@@ -48,6 +48,12 @@ If the Mac is awake but can't reach the network, `claude remote-control` gives u
 
 Anthropic's docs say a restart in the same folder within about four hours brings back every session the server was serving, so this differs from the docs. We don't know why.
 
+Possible causes, all unverified:
+- Restore records may be kept per folder, and phone-started sessions live in worktree folders. Anthropic's docs on `--continue` describe looking in "this directory" first and then in other worktrees. That would also explain why `--session-id` worked only from the worktree folder (below).
+- Claude Code updated from 2.1.301 to 2.1.302 at the same restart.
+
+If it reproduces, it's worth reporting upstream at [anthropics/claude-code](https://github.com/anthropics/claude-code/issues).
+
 **After the server exits because the network was down:** untested. The docs only say to run it again "to start a new session". Check it as part of the unplug test above.
 
 **Bringing a session back (observed working):** run `--session-id` from **the session's own worktree folder**, in its own tmux window (`Ctrl+B`, then `C`):
@@ -56,7 +62,7 @@ Anthropic's docs say a restart in the same folder within about four hours brings
 cd ~/code/my-project/.claude/worktrees/bridge-cse_<…> && claude remote-control --session-id session_<…>
 ```
 
-The session ID is the part of its claude.ai/code URL between `/code/` and any `?`. Its worktree folder name carries the same ID after `bridge-cse_` (for example, `session_01Tjx…` ran in `bridge-cse_01Tjx…`); `git worktree list` shows them all. The process shows `Single session · exits when complete`: it serves only that session, exits when the session ends, and isn't restarted by `rc-loop`. It also runs independently of the main server, so restarting the main server doesn't affect it. The docs give a window of about four hours after the server stopped.
+The session ID is the part of its claude.ai/code URL between `/code/` and any `?`. Its worktree folder name carries the same ID after `bridge-cse_` (for example, `session_01Abc…` runs in `bridge-cse_01Abc…`); `git worktree list` shows them all. The process shows `Single session · exits when complete`: it serves only that session, exits when the session ends, and isn't restarted by `rc-loop`. It's a separate process from the main server, but whether restarting the main server leaves it running is untested. The docs give a window of about four hours after the server stopped.
 
 ## Only one server per folder
 
@@ -70,9 +76,11 @@ Running it from a session's worktree folder works (see above).
 
 ## Claude in Chrome: the browser list covers your whole account
 
-**Observed (2026-10-19):** after running `claude --chrome` on the Mac, `/chrome` listed three browsers, though the Mac had one Brave window open. The list holds every browser where the Claude extension is signed in to your account, on any machine. The names are generic ("Browser 1") and all three said macOS. The way to tell them apart is the connection time: the Mac's browser connected when you ran `claude --chrome` there.
+**Observed (2026-10-19):** after running `claude --chrome` on the Mac, `/chrome` listed three browsers, though the Mac had one Brave window open. The other two had connected hours earlier, matching when the browser on another of our Macs connected, so the list appears to include every browser where the extension is signed in to your account, on any machine. That's our reading of what we saw; Anthropic's docs only say you choose when more than one browser is connected. The names are generic ("Browser 1") and all three said macOS. The way to tell them apart is the connection time: the Mac's browser connected when you ran `claude --chrome` there.
 
 Pick the Mac's browser in `/chrome` under **Select browser…**. Otherwise a session on the Mac can drive a browser on another machine, with everything you're signed into there. Then ask the session to open a tab and check it appears on the right machine.
+
+**Unverified:** whether that choice carries over to new sessions started from the phone. The docs say Claude prompts you to pick a browser when none is chosen, so expect to pick once per session.
 
 Also observed:
 - That first `claude --chrome` wrote the extension's connection file for both Brave and Chrome, even though only Brave was installed.

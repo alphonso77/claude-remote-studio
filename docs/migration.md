@@ -2,7 +2,7 @@
 
 If you built this setup by pasting scripts into `~/.local/bin` (as we first did), move onto the repo so there's one copy of everything. After migrating, change the scripts by committing to the repo and pulling on the Mac, never by editing them in place. `rc-doctor` flags drift.
 
-Only one step interrupts your phone sessions, and only for about a minute.
+Only one step interrupts your phone sessions. The server itself is back in about a minute; any phone-started sessions have to be brought back one at a time afterward (see step 3).
 
 ## Before you start
 
@@ -53,7 +53,7 @@ If your old script didn't pass `--spawn`, this is also the first run with `--spa
 1. Attach: `tmux attach -t rc`.
 2. Press `Ctrl+C`. If the `Restarting in 30s` line appears, press it again, until you're at a shell prompt.
 3. Run `rc-loop`. Wait for **Connected**.
-4. Check that the session list and capacity match what you had before. From the phone, send a message to an existing session.
+4. Check that the server's own session is listed and answers a message from the phone. Expect phone-started sessions to be missing (below).
 5. Detach with `Ctrl+B`, then `D`.
 
 Do this inside the existing `rc` pane rather than a new SSH shell, because Claude Code reports "Not logged in" over SSH. That pane descends from Terminal on the Mac's own screen.

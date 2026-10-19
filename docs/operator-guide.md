@@ -62,7 +62,7 @@ Use the full tmux path in a one-line `ssh host '…'` command, because Homebrew 
 2. Run `rc-loop`.
 3. Detach.
 
-Do this in the existing `rc` pane rather than a new SSH shell. That pane descends from a Terminal opened on the Mac's own screen, which avoids the open question about starting the server over SSH (see [known issues](known-issues.md)). Don't do this from a session the server is serving: stopping the server ends that session too. In our test, only the session the server started with came back. Sessions started from the phone had to be brought back one at a time (next item).
+Do this in the existing `rc` pane rather than a new SSH shell. That pane descends from a Terminal opened on the Mac's own screen. A fresh SSH shell won't work: Claude Code reports "Not logged in" over SSH (see [known issues](known-issues.md)). Don't do this from a session the server is serving: stopping the server ends that session too. In our test, only the session the server started with came back. Sessions started from the phone had to be brought back one at a time (next item).
 
 **Bring back a session that didn't return:** open a new tmux window (`Ctrl+B`, then `C`), `cd` into that session's worktree folder, and run `claude remote-control --session-id <id>`. The [known issues](known-issues.md#which-sessions-come-back-after-a-restart) page shows how to find the ID and the folder. It runs as its own single-session process in that window. Running it in the main repo folder fails, because only one server can run per folder.
 
