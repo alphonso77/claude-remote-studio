@@ -13,9 +13,9 @@ else
   ver=$(claude --version 2>/dev/null | awk 'NR==1{print $1}')
   # 2.1.273 is the oldest version with every flag rc-loop can pass (--chrome needs it).
   autoload -Uz is-at-least
-  if is-at-least 2.1.273 "$ver"; then pass "claude $ver at $(command -v claude)"
-  else bad "claude at $(command -v claude) is $ver; rc-loop needs 2.1.273 or later (an older copy earlier in PATH?)"; fi
-  others=( ${(f)"$(whence -ap claude | sort -u)"} )
+  if [[ -n "$ver" ]] && is-at-least 2.1.273 "$ver"; then pass "claude $ver at $(command -v claude)"
+  else bad "claude at $(command -v claude) is ${ver:-unknown}; rc-loop needs 2.1.273 or later (an older copy earlier in PATH?)"; fi
+  others=( ${(u)${(f)"$(whence -ap claude)"}} )   # PATH order, duplicates removed
   (( ${#others} > 1 )) && note "${#others} claude binaries on PATH; rc-loop runs the first: ${(j:, :)others}"
 fi
 for src in "$repo"/bin/*; do

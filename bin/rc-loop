@@ -23,9 +23,15 @@ case "$chrome" in
   '') ;;
   *) echo "rc-loop: ignoring RC_CHROME=$chrome (use 1, 0 or leave empty)" >&2 ;;
 esac
-# Say which claude this is: an old copy earlier in PATH (e.g. a stale npm install) would
-# otherwise fail on newer flags and restart forever.
-echo "rc-loop: $(command -v claude) ($(claude --version 2>/dev/null | head -1))"
+# Refuse to start with a missing, broken or old claude (e.g. a stale npm install earlier in
+# PATH): it would fail on rc-loop's flags and restart forever. 2.1.273 added --chrome.
+command -v claude >/dev/null || { echo "rc-loop: claude isn't on PATH" >&2; exit 1; }
+ver=$(claude --version 2>/dev/null | awk 'NR==1{print $1}')
+autoload -Uz is-at-least
+if [[ -z "$ver" ]] || ! is-at-least 2.1.273 "$ver"; then
+  echo "rc-loop: $(command -v claude) is ${ver:-unusable}; need 2.1.273 or later (run rc-doctor)" >&2; exit 1
+fi
+echo "rc-loop: claude $ver at $(command -v claude)"
 while true; do
   claude "${args[@]}"
   code=$?

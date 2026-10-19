@@ -2,11 +2,11 @@
 
 One Remote Control server can host a small team of sessions that message each other. For example: a lead that coordinates, a reviewer, and a smoke tester that drives a browser. This page covers what we've seen work, what broke, and what's still untested. It describes what we observed on 2026-10-19 with Claude Code 2.1.302 and 2.1.303.
 
-Messaging uses Claude Code's built-in cross-session tools. A session lists its peers, then sends a message to one by name.
+Messaging uses Claude Code's built-in cross-session tools. As we used them, a session lists its peers, then sends a message to one by name.
 
 ## Setting up the team
 
-- **Lead: the server's own session**, the one named by `--name` (`RC_NAME`). In our restarts, it was the session that reliably came back with its history (see [known issues](known-issues.md#which-sessions-come-back-after-a-restart)). That makes it the best home for the coordinator.
+- **Lead: the server's own session**, the one named by `--name` (`RC_NAME`). It came back with its history in both of our restarts (see [known issues](known-issues.md#which-sessions-come-back-after-a-restart)). That makes it the best home for the coordinator.
 - **Everyone else: start from the phone.** In the Code tab, start a new session in this Mac's environment. With `--spawn=worktree`, each one gets its own git worktree. Name it right away with `/rename`, then give it a first message stating:
   - its role;
   - which session leads;
@@ -37,7 +37,7 @@ The sender only learns that the message was delivered, not whether it was read. 
 A server restart interrupts the whole team, so:
 1. Check with the lead first, and pick a moment when no one is mid-task.
 2. Record session IDs and worktree folders ([operator guide](operator-guide.md#before-a-planned-restart)).
-3. Restart from the Mac's screen. Over SSH, Claude Code isn't signed in.
+3. Restart from the Mac's screen or the existing `rc` pane, not a fresh SSH shell: Claude Code isn't signed in there.
 4. Afterward, check which sessions came back. In our runs it varied (see known issues), so bring back the missing ones and have the lead re-list its peers.
 
 ## Housekeeping

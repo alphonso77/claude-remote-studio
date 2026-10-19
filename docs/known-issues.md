@@ -49,7 +49,7 @@ If the Mac is awake but can't reach the network, `claude remote-control` gives u
 Anthropic's docs say a restart in the same folder within about four hours brings back every session the server was serving, so this differs from the docs. We don't know why.
 
 Possible causes, all unverified:
-- Restore records may be kept per folder, and phone-started sessions live in worktree folders. Anthropic's docs on `--continue` describe looking in "this directory" first and then in other worktrees. That would also explain why `--session-id` worked only from the worktree folder (below).
+- Restore records may be kept per folder, and phone-started sessions live in worktree folders. Anthropic's docs on `--continue` describe looking in "this directory" first and then in other worktrees. That would also explain why `--session-id` worked only from the worktree folder (below). But at the next restart the main server took that same session over from the repo folder, which this explanation doesn't account for.
 - Claude Code updated from 2.1.301 to 2.1.302 at the same restart.
 
 If it reproduces, it's worth reporting upstream at [anthropics/claude-code](https://github.com/anthropics/claude-code/issues).
