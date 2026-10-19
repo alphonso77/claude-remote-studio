@@ -12,14 +12,14 @@ Built while building [Fratelli Software](https://fratellisoftware.com).
             │                              │ tmux session "rc"                        │
             │   Anthropic relays           │  └─ rc-loop  (restarts on exit)          │
             └──────── messages ───────────▶│      └─ claude remote-control            │
-                     (outbound HTTPS        │           --spawn=worktree --name …      │
-                      only; no open ports)  │           ├─ session 1  (repo dir)       │
-                                            │           ├─ session 2  (git worktree)   │
-                                            │           └─ …  up to 32                 │
-                                            │                                          │
-                                            │  any session ──▶ ask-local ──▶ Ollama    │
-                                            │                  (localhost:11434)       │
-                                            └──────────────────────────────────────────┘
+                     (outbound HTTPS       │           --spawn=worktree --name …      │
+                      only; no open ports) │           ├─ session 1  (repo dir)       │
+                                           │           ├─ session 2  (git worktree)   │
+                                           │           └─ …  up to 32                 │
+                                           │                                          │
+                                           │  any session ──▶ ask-local ──▶ Ollama    │
+                                           │                  (localhost:11434)       │
+                                           └──────────────────────────────────────────┘
 ```
 
 ## What's in here
