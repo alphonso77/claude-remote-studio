@@ -29,7 +29,7 @@ Each item says what's been **observed** on our machine, what's **documented** by
 
 ## Credentials stored in the keychain don't work over SSH
 
-**Observed (2026-10-19):** over SSH, `gh auth status` on the Mac reported "The token in default is invalid" and `gh repo view` of a private repo failed with HTTP 401. Meanwhile, sessions on the same Mac pushed to GitHub without trouble. `gh` keeps its token in the macOS keychain, which an SSH login usually can't unlock. So do sign-ins, and anything that needs them (cloning a private repo, `gh` calls), from Terminal on the Mac's screen or from a session.
+**Observed (2026-10-19):** over SSH, `gh auth status` on the Mac reported "The token in default is invalid" and `gh repo view` of a private repo failed with HTTP 401. Meanwhile, sessions on the same Mac pushed to GitHub without trouble. `gh` keeps its token in the macOS keychain, so the most likely cause is that an SSH login can't unlock the keychain. So do sign-ins, and anything that needs them (cloning a private repo, `gh` calls), from Terminal on the Mac's screen or from a session.
 
 **Still unverified for Claude Code itself:** the original setup notes said to start `claude remote-control` from the Mac's screen, not over SSH, for the same keychain reason. The `gh` result makes that likely, but Claude Code hasn't been tested over SSH. Until it is, restart the server inside the existing `rc` tmux pane (see the operator guide).
 
