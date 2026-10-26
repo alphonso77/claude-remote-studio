@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Runs ollama-tunnel at login and restarts it if it exits.
+     Rename the label (and this file) to your own reverse-DNS name, copy it to
+     ~/Library/LaunchAgents/, then: launchctl bootstrap gui/$(id -u) <path>
+     Logs: ~/Library/Logs/ollama-tunnel.log. See README ("Exposing Ollama to a hosted app"). -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.example.ollama-tunnel</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string><string>-lc</string>
+    <string>exec "$HOME/.local/bin/ollama-tunnel" &gt;&gt; "$HOME/Library/Logs/ollama-tunnel.log" 2&gt;&amp;1</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <!-- Don't hammer ngrok when it keeps failing (bad URL, network down). -->
+  <key>ThrottleInterval</key><integer>30</integer>
+</dict>
+</plist>

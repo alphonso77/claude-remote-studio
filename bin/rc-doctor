@@ -49,4 +49,22 @@ if [[ "${RC_CHROME:-}" == 1 ]]; then
 fi
 # Ollama is optional, so its absence is a note, not a failure.
 curl -sf http://localhost:11434/api/tags >/dev/null && pass "Ollama answers on :11434" || note "Ollama isn't answering on :11434 (only matters if you use ask-local)"
+# The tunnel is optional too: only checked once ~/.config/ollama-tunnel.env exists.
+if [[ -f "$HOME/.config/ollama-tunnel.env" ]]; then
+  source "$HOME/.config/ollama-tunnel.env"
+  policy="${OLLAMA_TUNNEL_POLICY:-$HOME/.config/ollama-tunnel/policy.yml}"
+  if [[ ! -f "$policy" ]]; then bad "no tunnel policy file at $policy (ollama-tunnel new-password)"
+  elif [[ "$(stat -f %Lp "$policy")" != 600 ]]; then bad "$policy isn't mode 600"
+  else pass "tunnel policy file is private"; fi
+  pgrep -f "ngrok http .*--traffic-policy-file" >/dev/null && pass "ollama-tunnel is running" || bad "ollama-tunnel isn't running (launch agent loaded?)"
+  if [[ -n "${OLLAMA_TUNNEL_URL:-}" ]]; then
+    # Without credentials the tunnel must refuse; a 200 here means the model is open to anyone.
+    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$OLLAMA_TUNNEL_URL/api/version")
+    case "$code" in
+      401) pass "tunnel asks for credentials ($OLLAMA_TUNNEL_URL)" ;;
+      200) bad "tunnel answered without credentials; anyone can use the model" ;;
+      *)   bad "tunnel didn't answer as expected (HTTP $code from $OLLAMA_TUNNEL_URL)" ;;
+    esac
+  fi
+fi
 exit $fail

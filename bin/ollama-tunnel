@@ -1,0 +1,46 @@
+#!/bin/zsh
+# ollama-tunnel: expose the local Ollama to a hosted app through an ngrok URL, behind HTTP Basic auth.
+# usage: ollama-tunnel              run the tunnel (what the launch agent calls)
+#        ollama-tunnel new-password [user]
+#                                   write fresh credentials and print the Authorization header
+#                                   value to set on the client (the old password stops working
+#                                   once the tunnel restarts)
+# Settings come from ~/.config/ollama-tunnel.env (see config/ollama-tunnel.env.example).
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+[[ -f "$HOME/.config/ollama-tunnel.env" ]] && source "$HOME/.config/ollama-tunnel.env"
+url="${OLLAMA_TUNNEL_URL:-}"
+port="${OLLAMA_TUNNEL_PORT:-11434}"
+# The credentials live in an ngrok traffic policy file, not on the command line, so they stay
+# out of shell history and the process list.
+policy="${OLLAMA_TUNNEL_POLICY:-$HOME/.config/ollama-tunnel/policy.yml}"
+
+if [[ "$1" == "new-password" ]]; then
+  user="${2:-ollama}"
+  pass=$(openssl rand -hex 24)
+  mkdir -p "${policy:h}"
+  (umask 077; cat > "$policy" <<EOF
+on_http_request:
+  - actions:
+      - type: basic-auth
+        config:
+          realm: ollama
+          credentials:
+            - "$user:$pass"
+EOF
+  )
+  chmod 600 "$policy"
+  echo "ollama-tunnel: wrote $policy" >&2
+  echo "ollama-tunnel: restart the tunnel, then set this Authorization header on the client:" >&2
+  print -r -- "Basic $(print -rn -- "$user:$pass" | base64)"
+  exit 0
+fi
+
+if [[ -z "$url" ]]; then
+  echo 'ollama-tunnel: set OLLAMA_TUNNEL_URL in ~/.config/ollama-tunnel.env' >&2; exit 2
+fi
+command -v ngrok >/dev/null || { echo "ollama-tunnel: ngrok isn't on PATH (brew install ngrok)" >&2; exit 1; }
+# Refuse to start without auth: an open tunnel would let anyone on the internet use the model.
+[[ -f "$policy" ]] || { echo "ollama-tunnel: no policy file at $policy; run: ollama-tunnel new-password" >&2; exit 1; }
+grep -q 'type: basic-auth' "$policy" || { echo "ollama-tunnel: $policy has no basic-auth action; refusing to start" >&2; exit 1; }
+[[ "$(stat -f %Lp "$policy")" == 600 ]] || { echo "ollama-tunnel: $policy must be mode 600 (chmod 600 it)" >&2; exit 1; }
+exec ngrok http "$port" --url "$url" --traffic-policy-file "$policy" --log stdout --log-format logfmt

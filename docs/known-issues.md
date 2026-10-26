@@ -24,6 +24,7 @@ Each item says what's been **observed** on our machine, what's **documented** by
 `rc-loop` handles the server exiting. It doesn't handle the Mac restarting: tmux and everything in it are gone, and someone has to log in and start it again. Pieces for fixing this, none tested yet:
 
 - `launchd/com.example.rc-loop.plist` starts the tmux session at login.
+- `launchd/com.example.ollama-tunnel.plist` brings the Ollama tunnel back at login. **Observed (2026-10-26):** after a power loss, a tunnel started by hand stayed down, and the hosted app's model calls failed, until someone noticed. Loading the agent starts the tunnel; that it comes back on its own after a reboot is still untested.
 - macOS can log in automatically after a power failure only if FileVault is off. With FileVault on, the Mac waits at a pre-boot unlock screen before the network is up.
 - Tailscale running as a system daemon plus a VNC app on the phone would let you log in remotely, if FileVault allows it.
 
