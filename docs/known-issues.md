@@ -21,18 +21,34 @@ Each item says what's been **observed** on our machine, what's **documented** by
 
 **Status:** open, by design for now.
 
-`rc-loop` handles the server exiting. It doesn't handle the Mac restarting: tmux and everything in it are gone, and someone has to log in and start it again. Pieces for fixing this, none tested yet:
+`rc-loop` handles the server exiting. It doesn't handle the Mac restarting: tmux and everything in it are gone, and someone has to log in and start it again. The [operator guide](operator-guide.md#after-a-reboot-or-power-loss) has the steps.
 
-- `launchd/com.example.rc-loop.plist` starts the tmux session at login.
-- `launchd/com.example.ollama-tunnel.plist` brings the Ollama tunnel back at login. **Observed (2026-10-26):** after a power loss, a tunnel started by hand stayed down, and the hosted app's model calls failed, until someone noticed. Loading the agent starts the tunnel; that it comes back on its own after a reboot is still untested.
-- macOS can log in automatically after a power failure only if FileVault is off. With FileVault on, the Mac waits at a pre-boot unlock screen before the network is up.
-- Tailscale running as a system daemon plus a VNC app on the phone would let you log in remotely, if FileVault allows it.
+**Observed (2026-10-26), after a power loss on a Mac with FileVault on:**
+- **The Mac stayed off until someone pressed the power button.** "Start up automatically after a power failure" was off (`pmset -g` showed `autorestart 0`).
+- **It left no clean shutdown record.** `last` showed the old login ending in `crash`, and there was no shutdown cause or panic report. That's what a power cut looks like, as opposed to a deliberate shutdown.
+- **Nothing ran until someone entered the password at the Mac's FileVault screen**, which comes before macOS starts. SSH worked a few minutes after that.
+- **After the login at the screen:**
+  - Ollama came back by itself, from its own launch agent.
+  - A tunnel that had been started by hand stayed down, and the hosted app's model calls failed until someone noticed.
+  - The server didn't come back.
+
+Pieces for fixing the rest:
+
+- `launchd/com.example.ollama-tunnel.plist` brings the [Ollama tunnel](ollama-tunnel.md) back at login. Loading it over SSH works (observed); coming back on its own after a reboot is untested.
+- `launchd/com.example.rc-loop.plist` starts the tmux session at login. Untested, including whether Claude Code is signed in when started this way (see the keychain item below).
+- Turning on `autorestart` (System Settings → Energy → "Start up automatically after a power failure", or `sudo pmset -a autorestart 1`) brings the Mac back to the FileVault unlock screen without anyone pressing the power button. Someone still has to unlock it.
+- macOS can log in automatically after a power failure only if FileVault is off.
+- Tailscale running as a system daemon plus a VNC app on the phone would let you log in remotely, if FileVault allows it. Untested.
 
 ## Credentials stored in the keychain don't work over SSH
 
 **Observed (2026-10-19):** over SSH, `gh auth status` on the Mac reported "The token in default is invalid" and `gh repo view` of a private repo failed with HTTP 401. Meanwhile, sessions on the same Mac pushed to GitHub without trouble. `gh` keeps its token in the macOS keychain, so the most likely cause is that an SSH login can't unlock the keychain. So do sign-ins, and anything that needs them (cloning a private repo, `gh` calls), from Terminal on the Mac's screen or from a session.
 
 **Observed for Claude Code too (2026-10-19):** over SSH, `claude -p` printed `Not logged in · Please run /login`, while sessions on the same Mac were signed in and working. So start or restart the server from Terminal on the Mac's screen, or inside the existing `rc` tmux pane, never from a fresh SSH shell. Attaching to `rc` over SSH and restarting there should work, because that pane's shell was started from the Mac's screen, but it's untested.
+
+**Workaround from SSH (observed 2026-10-26):** this works while someone is logged in at the Mac's screen (`who` lists a `console` login). Have Terminal on the Mac run the start commands: write them to a `.command` file and run `open -a Terminal <file>`. Terminal runs inside the screen login, where the keychain is unlocked. The server it started came up signed in and **Connected**. The [operator guide](operator-guide.md#after-a-reboot-or-power-loss) has the exact file. Two other ways didn't work:
+- `launchctl asuser <uid> …` from SSH failed with `Could not switch to audit session … Operation not permitted`.
+- `claude auth status` in a plain SSH shell reported `"loggedIn": false`.
 
 ## Server mode exits after about 10 minutes offline
 

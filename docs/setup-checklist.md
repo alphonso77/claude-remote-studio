@@ -101,6 +101,14 @@ Only if sessions on this Mac should drive a browser, for example a smoke-test se
 - [ ] **Leave the browser running.** Claude Code doesn't start it.
 - [ ] **Turn Chrome on for the server's sessions:** add `RC_CHROME=1` to `~/.config/rc-loop.env`. Sessions started by the server have Chrome off without it. `rc-doctor` then also checks the connection file and that a browser is running.
 
+## Optional: let a hosted app use the local model (Ollama tunnel)
+
+Only if an app you host elsewhere calls this Mac's model. Sessions on the Mac don't need it.
+
+- [ ] **Set up the tunnel and its launch agent** with the steps in [Ollama tunnel](ollama-tunnel.md#set-up). Set the printed `Authorization` value on your host.
+- [ ] **`rc-doctor` shows the three tunnel checks as `ok`**, including "tunnel asks for credentials".
+- [ ] **Decide where Ollama listens.** The tunnel only needs `127.0.0.1`. If Ollama's own launch agent sets `OLLAMA_HOST=0.0.0.0:11434`, the model is also open to your home network without a password.
+
 ## 6. Start the server
 
 - [ ] **Start it inside tmux, from the Mac's own Terminal:**
@@ -131,7 +139,7 @@ Run this any time, on the Mac or over SSH:
 rc-doctor
 ```
 
-- [ ] Every line says `ok` (`note` lines are informational, for example when you don't use Ollama).
+- [ ] Every line says `ok` (`note` lines are informational, for example when you don't use Ollama). With the tunnel set up, that includes "tunnel asks for credentials". A `FAIL` saying the tunnel answered without credentials means anyone can use the model: stop the tunnel (`launchctl bootout gui/$(id -u)/<label>`) and see [Ollama tunnel](ollama-tunnel.md).
 - [ ] In the `rc` tmux window (`tmux attach -t rc`), the top line says **Connected**, and the capacity count matches the number of sessions you expect.
 - [ ] The phone shows your sessions with a green dot.
 

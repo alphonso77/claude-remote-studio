@@ -103,4 +103,21 @@ tmux attach -t rc     # Ctrl+C until you're at a prompt, then:
 exit                  # or, from outside: tmux kill-session -t rc
 ```
 
-**After a reboot or power loss:** nothing restarts on its own yet. Log in on the Mac's screen, open Terminal, and start again from step 6 of the [setup checklist](setup-checklist.md).
+<a id="after-a-reboot-or-power-loss"></a>**After a reboot or power loss:**
+
+1. **Power on and log in at the Mac's screen.** With FileVault on, nothing runs, not even SSH, until the password is entered there. Ollama and the [Ollama tunnel](ollama-tunnel.md) come back at login if their launch agents are installed.
+2. **Start the server.** Either:
+   - **at the Mac:** open Terminal and run `tmux new -s rc`, then `rc-loop`, as in step 6 of the [setup checklist](setup-checklist.md); or
+   - **over SSH, once step 1 is done:** have the Mac's Terminal start it, so Claude Code is signed in (see [known issues](known-issues.md#credentials-stored-in-the-keychain-dont-work-over-ssh)):
+     ```sh
+     cat > /tmp/start-rc.command <<'EOF'
+     #!/bin/zsh
+     export PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
+     tmux has-session -t rc 2>/dev/null || { tmux new-session -d -s rc && tmux send-keys -t rc rc-loop Enter; }
+     EOF
+     chmod +x /tmp/start-rc.command && open -a Terminal /tmp/start-rc.command
+     ```
+     A Terminal window opens on the Mac's screen. You can close it once the server shows **Connected**: tmux keeps running.
+3. **If `RC_CHROME=1`, open the browser** (`open -a "Brave Browser"`, or yours). Claude Code doesn't start it.
+4. **Run `rc-doctor`.** Every line should say `ok`.
+5. **Expect only the server's own session back.** Sessions started from the phone won't return after a reboot. Start new ones from the Code tab, or bring one back with `--session-id` within about four hours (above).

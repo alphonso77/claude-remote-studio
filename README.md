@@ -39,6 +39,7 @@ Built while building [Fratelli Software](https://fratellisoftware.com).
 | [`docs/operator-guide.md`](docs/operator-guide.md) | What's on the Mac's screen and what to do with it. Start here if you're running it. |
 | [`docs/known-issues.md`](docs/known-issues.md) | Open problems, unverified claims and gotchas. |
 | [`docs/multi-session.md`](docs/multi-session.md) | Running several cooperating sessions (lead, reviewer, smoke tester) on the Mac. |
+| [`docs/ollama-tunnel.md`](docs/ollama-tunnel.md) | Optional: setting up the tunnel, rotating its password, checking who used it. |
 
 ## Requirements
 
@@ -82,28 +83,11 @@ Check everything with `rc-doctor`.
 
 - Test from the phone **with Wi-Fi off**, so you're testing the same path you'll use when you're away.
 - Turn on push notifications: in a session, run `/config` and turn on **Push when actions required** and **Push when Claude decides**. Permission prompts then reach your phone.
-- Know what this setup does **not** survive: a reboot or power loss (see [known issues](docs/known-issues.md)).
+- Know what a reboot or power loss does: the server doesn't come back on its own, and with FileVault on nothing does until someone logs in at the Mac's screen (see [known issues](docs/known-issues.md#nothing-restarts-after-a-reboot-or-power-loss)).
 
 ## Exposing Ollama to a hosted app (optional)
 
-If an app you host elsewhere (on Railway, say) should use the Mac's model too, `ollama-tunnel` publishes Ollama at a reserved ngrok URL and turns away any request without the right Basic-auth credentials. Sessions on the Mac don't need this; they reach Ollama on localhost.
-
-```sh
-brew install ngrok && ngrok config add-authtoken <token>     # once
-cp ~/code/claude-remote-studio/config/ollama-tunnel.env.example ~/.config/ollama-tunnel.env
-$EDITOR ~/.config/ollama-tunnel.env                           # OLLAMA_TUNNEL_URL
-ollama-tunnel new-password myapp                              # prints the Authorization header value
-
-cp ~/code/claude-remote-studio/launchd/com.example.ollama-tunnel.plist ~/Library/LaunchAgents/
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.example.ollama-tunnel.plist
-rc-doctor                                                     # expect "tunnel asks for credentials"
-```
-
-Set the printed `Basic …` value as the client's `Authorization` header (for example in an environment variable on your host). It's printed once and kept only in a mode-600 policy file, never on ngrok's command line.
-
-**To rotate the password** (for example after your host reports a leak of environment variables): run `ollama-tunnel new-password myapp`, restart the tunnel with `launchctl kickstart -k gui/$(id -u)/com.example.ollama-tunnel`, then update the client. Requests fail with 401 in between.
-
-The launch agent starts at login, so after a power loss the tunnel comes back once someone logs in. With FileVault on, that means at the Mac's screen (see [known issues](docs/known-issues.md#nothing-restarts-after-a-reboot-or-power-loss)).
+If an app you host elsewhere (on Railway, say) should use the Mac's model too, `ollama-tunnel` publishes Ollama at a reserved ngrok URL and turns away any request without the right Basic-auth credentials. Sessions on the Mac don't need this; they reach Ollama on localhost. Setup, password rotation and how to check who used it: [docs/ollama-tunnel.md](docs/ollama-tunnel.md).
 
 ## Why it's built this way
 
