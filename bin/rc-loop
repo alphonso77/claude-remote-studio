@@ -40,7 +40,7 @@ logdir="${RC_DEBUG_DIR-$HOME/Library/Logs/rc-loop}"
 while true; do
   run_args=("${args[@]}")
   if [[ -n "$logdir" ]]; then
-    find "$logdir" -maxdepth 1 -type f \( -name 'remote-control-*.log' -o -name 'bridge-transcript-*.jsonl' \) -mtime +14 -delete
+    find "$logdir/" -maxdepth 1 -type f \( -name 'remote-control-*.log' -o -name 'bridge-transcript-*.jsonl' \) -mtime +14 -delete
     log="$logdir/remote-control-$(date '+%Y%m%d-%H%M%S').log"
     run_args+=(--debug-file "$log")
     echo "rc-loop: debug log $log"
