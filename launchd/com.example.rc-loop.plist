@@ -4,7 +4,8 @@
      Rename the label (and this file) to your own reverse-DNS name, copy it to
      ~/Library/LaunchAgents/, then: launchctl bootstrap gui/$(id -u) <path>
      Logs: ~/Library/Logs/rc-loop-agent.log (empty when all is well; the server's
-     own output is in the rc tmux window). See docs/operator-guide.md
+     own output is in the rc tmux window, and its debug log in
+     ~/Library/Logs/rc-loop/). See docs/operator-guide.md
      ("After a reboot or power loss"). -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">

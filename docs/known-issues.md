@@ -17,6 +17,26 @@ Each item says what's been **observed** on our machine, what's **documented** by
 
 **To reproduce, record:** which session (pre-created or started from the phone), where you renamed it, and where the old name still shows (server window, `claude --resume` on the Mac, the peer list, the phone). If it reproduces with a minimal setup, report it upstream at [anthropics/claude-code](https://github.com/anthropics/claude-code/issues).
 
+## The server showed Connected but stopped starting new sessions
+
+**Status:** open, cause unknown. Seen once.
+
+**Observed (2026-10-27):** the server's window showed **Connected**, but it stopped starting new sessions. The phone said to run `claude rc`, and prompts sent from the desktop app landed in an existing session. Restarting the server fixed it.
+
+Two things happened shortly before, either of which may be the cause:
+- At 9:49, Claude Code updated itself to 2.1.311 while the server was still running 2.1.309.
+- At 9:52, a `/login` over SSH created `~/.claude/.credentials.json`, a plain-text sign-in file (see [signing in](operator-guide.md#signing-in-again)).
+
+**Next time:** `rc-loop` now gives the server a debug log, one file per start, in `~/Library/Logs/rc-loop/`. Copy the current file before restarting, and note the time it stopped working and the Claude Code version (`claude --version`, and the version `rc-loop` printed at its start).
+
+## The desktop app's drop-down opens the server's own session
+
+**Observed (2026-10-27):** choosing the Mac from the Claude desktop app's drop-down opens the server's pre-made session (the one named by `--name`, such as "My project on Studio") instead of starting a new one.
+
+**Documented:** the server creates that session at startup "so you have somewhere to type immediately" (`claude remote-control --help`).
+
+**Workaround:** start new sessions from the phone, or from the environment's URL at claude.ai/code (`https://claude.ai/code?environment=env_…`, shown in the server's window). `claude remote-control --no-create-session-in-dir` would stop the server pre-making that session; we haven't tried it.
+
 ## Coming back after a reboot or power loss
 
 **Status:** works remotely with the launch agents installed (tested 2026-10-26). Someone still has to type the password twice, and sessions started from the phone don't come back.
@@ -55,6 +75,8 @@ What's left:
 - `launchctl asuser <uid> …` from SSH failed with `Could not switch to audit session … Operation not permitted`.
 - `claude auth status` in a plain SSH shell reported `"loggedIn": false`.
 
+**Don't `/login` over SSH (observed 2026-10-27).** It saved the sign-in to `~/.claude/.credentials.json`, a plain-text file. It also happened just before the [half-broken server](#the-server-showed-connected-but-stopped-starting-new-sessions). See [signing in again](operator-guide.md#signing-in-again) for what to do instead.
+
 ## Server mode exits after about 10 minutes offline
 
 **Status:** documented by Anthropic, not yet observed here.
@@ -86,6 +108,15 @@ cd ~/code/my-project/.claude/worktrees/bridge-cse_<…> && claude remote-control
 
 The session ID is the part of its claude.ai/code URL between `/code/` and any `?`. Its worktree folder name carries the same ID after `bridge-cse_` (for example, `session_01Abc…` runs in `bridge-cse_01Abc…`); `git worktree list` shows them all. The process shows `Single session · exits when complete`: it serves only that session, exits when the session ends, and isn't restarted by `rc-loop`. The docs give a window of about four hours after the server stopped.
 
+**If its worktree folder is gone (observed 2026-10-27):** stopping the server deleted a phone-started session's worktree folder and its branch. The worktree had no uncommitted changes. Recreating the worktree at the session's last commit, then running `--session-id` from it, brought the session back:
+
+```sh
+cd ~/code/my-project
+git worktree add -b worktree-bridge-cse_<…> .claude/worktrees/bridge-cse_<…> <commit>
+```
+
+So record each session's commit before a planned restart (see the [operator guide](operator-guide.md#before-a-planned-restart)). We don't know whether a worktree with uncommitted changes is kept.
+
 **What happened to it at the next restart (observed 2026-10-19):** about a minute after we restarted the main server, the main server started serving that session itself, from its worktree folder. The single-session process exited at the same time. So the session ended up under `rc-loop` after all. We don't know what triggered the takeover; it may have been the first message to that session.
 
 ## Session names on the Mac reset at a restart
@@ -97,6 +128,10 @@ The session ID is the part of its claude.ai/code URL between `/code/` and any `?
 The short reference in brackets (such as `[abc123]`) changed at every restart. From another machine, the same sessions kept showing their titles ("My project on Studio", the renamed title).
 
 So after a restart, have each session list its peers again before messaging by name. This is probably related to the rename issue at the top of this page.
+
+## Archiving a session ends it like a crash
+
+**Observed (2026-10-27):** archiving a session from the Claude desktop app ends it the way a crash does, and the server keeps its worktree. So `/exit` a session before archiving it, and remove its worktree yourself (see [stand down a session](operator-guide.md#stand-down-a-session)).
 
 ## Only one server per folder
 
