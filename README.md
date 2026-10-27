@@ -34,7 +34,7 @@ Built while building [Fratelli Software](https://fratellisoftware.com).
 | `config/rc-loop.env.example` | Settings for `rc-loop`. Copy it to `~/.config/rc-loop.env`. |
 | `claude-md/local-model.md` | A CLAUDE.md section that tells Claude when to use `ask-local` and when not to. |
 | `config/ollama-tunnel.env.example` | Settings for `ollama-tunnel`. Copy it to `~/.config/ollama-tunnel.env`. |
-| `launchd/` | Optional: start the tmux session at login (untested), and keep `ollama-tunnel` running. |
+| `launchd/` | Optional: start the server at login, and keep `ollama-tunnel` running. Together they bring everything back after a reboot. |
 | [`docs/setup-checklist.md`](docs/setup-checklist.md) | Step-by-step setup, plus a recurring "is it running as expected?" check. |
 | [`docs/operator-guide.md`](docs/operator-guide.md) | What's on the Mac's screen and what to do with it. Start here if you're running it. |
 | [`docs/known-issues.md`](docs/known-issues.md) | Open problems, unverified claims and gotchas. |
@@ -83,7 +83,7 @@ Check everything with `rc-doctor`.
 
 - Test from the phone **with Wi-Fi off**, so you're testing the same path you'll use when you're away.
 - Turn on push notifications: in a session, run `/config` and turn on **Push when actions required** and **Push when Claude decides**. Permission prompts then reach your phone.
-- Know what a reboot or power loss does: the server doesn't come back on its own, and with FileVault on nothing does until someone logs in at the Mac's screen (see [known issues](docs/known-issues.md#nothing-restarts-after-a-reboot-or-power-loss)).
+- Know what a reboot or power loss does. With the launch agents in `launchd/` installed, everything comes back at login. With FileVault on, someone has to unlock the Mac (over SSH works) and log in (Screen Sharing works) first. See the [operator guide](docs/operator-guide.md#after-a-reboot-or-power-loss), and turn on "Start up automatically after a power failure".
 
 ## Exposing Ollama to a hosted app (optional)
 
