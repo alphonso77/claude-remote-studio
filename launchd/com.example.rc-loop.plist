@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- UNTESTED. Starts the rc tmux session at login if it isn't already running.
+<!-- Starts the rc tmux session at login if it isn't already running.
+     Tested 2026-10-26: after a reboot it came up signed in and Connected.
      Rename the label (and this file) to your own reverse-DNS name, copy it to
      ~/Library/LaunchAgents/, then: launchctl bootstrap gui/$(id -u) <path>
-     See docs/known-issues.md ("Nothing restarts after a reboot"). -->
+     Logs: ~/Library/Logs/rc-loop-agent.log (empty when all is well; the server's
+     own output is in the rc tmux window). See docs/operator-guide.md
+     ("After a reboot or power loss"). -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -10,7 +13,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/zsh</string><string>-lc</string>
-    <string>export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH; sleep 20; tmux has-session -t rc 2>/dev/null || tmux new -d -s rc "$HOME/.local/bin/rc-loop"</string>
+    <string>exec &gt;&gt; "$HOME/Library/Logs/rc-loop-agent.log" 2&gt;&amp;1; export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH; sleep 20; tmux has-session -t rc 2&gt;/dev/null || tmux new -d -s rc "$HOME/.local/bin/rc-loop"</string>
   </array>
   <key>RunAtLoad</key><true/>
 </dict>

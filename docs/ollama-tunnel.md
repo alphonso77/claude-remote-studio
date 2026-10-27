@@ -85,4 +85,4 @@ grep '^\[GIN\]' ~/Library/Logs/ollama.log | awk -F'|' '{split($1,d," "); gsub(/ 
 
 - **ngrok's `--basic-auth` flag:** ngrok 3.39's `ngrok http --help` no longer lists it. Basic auth now goes through a traffic policy, which is what `ollama-tunnel` writes.
 - **The tunnel doesn't need Ollama on all interfaces.** ngrok connects to `localhost`. If Ollama's launch agent sets `OLLAMA_HOST=0.0.0.0:11434`, anyone on your home network can use the model with no password. Use `127.0.0.1:11434` unless something else on your network needs it.
-- **After a reboot:** the agent starts at login. With FileVault on, someone has to log in at the Mac's screen first (see [known issues](known-issues.md#nothing-restarts-after-a-reboot-or-power-loss)).
+- **After a reboot:** the agent starts at login (observed 2026-10-26). With FileVault on, someone has to unlock the Mac and log in first; both can be done remotely (see the [operator guide](operator-guide.md#after-a-reboot-or-power-loss)).

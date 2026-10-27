@@ -109,6 +109,17 @@ Only if an app you host elsewhere calls this Mac's model. Sessions on the Mac do
 - [ ] **`rc-doctor` shows the three tunnel checks as `ok`**, including "tunnel asks for credentials".
 - [ ] **Decide where Ollama listens.** The tunnel only needs `127.0.0.1`. If Ollama's own launch agent sets `OLLAMA_HOST=0.0.0.0:11434`, the model is also open to your home network without a password.
 
+## Optional: come back by itself after a reboot
+
+- [ ] **Install the `rc-loop` launch agent**, so the server starts at every login (tested 2026-10-26):
+  ```sh
+  sed 's/com\.example\./com.yourname./' ~/code/claude-remote-studio/launchd/com.example.rc-loop.plist \
+    > ~/Library/LaunchAgents/com.yourname.rc-loop.plist
+  ```
+  Loading it now isn't needed; it runs at the next login. If you load it anyway (`launchctl bootstrap gui/$(id -u) <that file>`), it sees the `rc` session from step 6 and does nothing.
+- [ ] **Turn on "Start up automatically after a power failure"** (System Settings → Energy, or `sudo pmset -a autorestart 1`).
+- [ ] **For recovering remotely with FileVault on:** turn on Remote Login and Screen Sharing (System Settings → General → Sharing). The [operator guide](operator-guide.md#after-a-reboot-or-power-loss) has the steps.
+
 ## 6. Start the server
 
 - [ ] **Start it inside tmux, from the Mac's own Terminal:**

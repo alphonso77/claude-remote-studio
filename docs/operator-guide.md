@@ -105,8 +105,12 @@ exit                  # or, from outside: tmux kill-session -t rc
 
 <a id="after-a-reboot-or-power-loss"></a>**After a reboot or power loss:**
 
-1. **Power on and log in at the Mac's screen.** With FileVault on, nothing runs, not even SSH, until the password is entered there. Ollama and the [Ollama tunnel](ollama-tunnel.md) come back at login if their launch agents are installed.
-2. **Start the server.** Either:
+1. **Unlock and log in.** With FileVault on, nothing runs until the disk is unlocked, and launch agents don't run until someone logs in to the desktop. Both can be done at the Mac's screen, or remotely (observed 2026-10-26):
+   1. `ssh <you>@<mac>.local` and enter your **Mac password** at the `This system is locked` prompt. Your SSH key doesn't work at this stage. The Mac then boots to the login window, and SSH works normally a minute later.
+   2. Log in through **Screen Sharing** (`vnc://<mac>.local`, or Finder → Go → Connect to Server…). Screen Sharing must already be on in System Settings → General → Sharing.
+
+   If the Mac is off after a power cut, someone has to press the power button, unless "Start up automatically after a power failure" is on (System Settings → Energy, or `sudo pmset -a autorestart 1`).
+2. **Wait about a minute.** With the launch agents installed (`launchd/`), Ollama, the [Ollama tunnel](ollama-tunnel.md) and the server start by themselves: the `rc-loop` agent starts the `rc` tmux session 20 seconds after login, signed in. Check with `tmux ls` and `tmux capture-pane -p -t rc | tail`. Without the `rc-loop` agent, start the server yourself, either:
    - **at the Mac:** open Terminal and run `tmux new -s rc`, then `rc-loop`, as in step 6 of the [setup checklist](setup-checklist.md); or
    - **over SSH, once step 1 is done:** have the Mac's Terminal start it, so Claude Code is signed in (see [known issues](known-issues.md#credentials-stored-in-the-keychain-dont-work-over-ssh)):
      ```sh
@@ -118,6 +122,10 @@ exit                  # or, from outside: tmux kill-session -t rc
      chmod +x /tmp/start-rc.command && open -a Terminal /tmp/start-rc.command
      ```
      A Terminal window opens on the Mac's screen. You can close it once the server shows **Connected**: tmux keeps running.
-3. **If `RC_CHROME=1`, open the browser** (`open -a "Brave Browser"`, or yours). Claude Code doesn't start it.
+3. **If `RC_CHROME=1`, check the browser.** macOS may reopen it at login; otherwise open it (`open -a "Brave Browser"`, or yours). Claude Code doesn't start it. While you're in Screen Sharing, look for a Claude prompt in the browser: after our restart it asked to name the Claude Code session and waited for **OK**.
 4. **Run `rc-doctor`.** Every line should say `ok`.
-5. **Expect only the server's own session back.** Sessions started from the phone won't return after a reboot. Start new ones from the Code tab, or bring one back with `--session-id` within about four hours (above).
+5. **Expect only the server's own session back.** Sessions started from the phone won't return after a reboot. Start new ones from the Code tab, or bring one back with `--session-id` within about four hours (above). Over SSH, start it in a new window of the `rc` tmux session, which is signed in:
+   ```sh
+   tmux new-window -t rc -n <name> -c <worktree folder>
+   tmux send-keys -t rc:<name> "claude remote-control --session-id <id>" Enter
+   ```
