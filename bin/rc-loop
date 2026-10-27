@@ -32,8 +32,19 @@ if [[ -z "$ver" ]] || ! is-at-least 2.1.273 "$ver"; then
   echo "rc-loop: $(command -v claude) is ${ver:-unusable}; need 2.1.273 or later (run rc-doctor)" >&2; exit 1
 fi
 echo "rc-loop: claude $ver at $(command -v claude)"
+# A debug log per server start, so a restart doesn't overwrite the log of the run that went wrong.
+# RC_DEBUG_DIR="" turns it off. Logs older than 14 days are deleted at each start.
+logdir="${RC_DEBUG_DIR-$HOME/Library/Logs/rc-loop}"
+[[ -n "$logdir" ]] && { mkdir -p "$logdir" || { echo "rc-loop: can't create $logdir; no debug log" >&2; logdir=""; }; }
 while true; do
-  claude "${args[@]}"
+  run_args=("${args[@]}")
+  if [[ -n "$logdir" ]]; then
+    find "$logdir" -maxdepth 1 -type f -name 'remote-control-*.log' -mtime +14 -delete
+    log="$logdir/remote-control-$(date '+%Y%m%d-%H%M%S').log"
+    run_args+=(--debug-file "$log")
+    echo "rc-loop: debug log $log"
+  fi
+  claude "${run_args[@]}"
   code=$?
   echo "$(date '+%a %H:%M') remote-control exited ($code). Restarting in ${delay}s; press Ctrl+C to stop."
   sleep "$delay"
