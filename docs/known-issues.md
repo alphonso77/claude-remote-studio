@@ -23,11 +23,11 @@ Each item says what's been **observed** on our machine, what's **documented** by
 
 **Observed (2026-10-27):** the server's window showed **Connected**, but it stopped starting new sessions. The phone said to run `claude rc`, and prompts sent from the desktop app landed in an existing session. Restarting the server fixed it.
 
-Two things happened shortly before, either of which may be the cause:
+Two things happened shortly before. Either may be related, or neither:
 - At 9:49, Claude Code updated itself to 2.1.311 while the server was still running 2.1.309.
 - At 9:52, a `/login` over SSH created `~/.claude/.credentials.json`, a plain-text sign-in file (see [signing in](operator-guide.md#signing-in-again)).
 
-**Next time:** `rc-loop` now gives the server a debug log, one file per start, in `~/Library/Logs/rc-loop/`. Copy the current file before restarting, and note the time it stopped working and the Claude Code version (`claude --version`, and the version `rc-loop` printed at its start).
+**Next time:** `rc-loop` now gives the server a debug log, one file per start, in `~/Library/Logs/rc-loop/` (or `RC_DEBUG_DIR`). A restart starts a new file, but `rc-loop` deletes files older than 14 days, so copy the file from the bad run somewhere else. Note the time it stopped working and the Claude Code version (`claude --version`, and the version `rc-loop` printed at its start).
 
 ## The desktop app's drop-down opens the server's own session
 
@@ -108,7 +108,7 @@ cd ~/code/my-project/.claude/worktrees/bridge-cse_<…> && claude remote-control
 
 The session ID is the part of its claude.ai/code URL between `/code/` and any `?`. Its worktree folder name carries the same ID after `bridge-cse_` (for example, `session_01Abc…` runs in `bridge-cse_01Abc…`); `git worktree list` shows them all. The process shows `Single session · exits when complete`: it serves only that session, exits when the session ends, and isn't restarted by `rc-loop`. The docs give a window of about four hours after the server stopped.
 
-**If its worktree folder is gone (observed 2026-10-27):** stopping the server deleted a phone-started session's worktree folder and its branch. The worktree had no uncommitted changes. Recreating the worktree at the session's last commit, then running `--session-id` from it, brought the session back:
+**If its worktree folder is gone (observed 2026-10-27):** stopping the server deleted a phone-started session's worktree folder and its branch. The worktree had no uncommitted changes. We recreated the worktree and branch at the session's last commit and ran `--session-id` from it, and the session came back up **Connected** in that folder:
 
 ```sh
 cd ~/code/my-project

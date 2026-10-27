@@ -79,7 +79,7 @@ cd ~/code/my-project
 git worktree add -b worktree-bridge-cse_<…> .claude/worktrees/bridge-cse_<…> <commit>
 ```
 
-<a id="signing-in-again"></a>**Signing in again:** don't run `/login` over SSH. It writes the sign-in to `~/.claude/.credentials.json`, a plain-text file, instead of the keychain (observed 2026-10-27). Sign in from a new window of the `rc` tmux session (`Ctrl+B`, then `C`), which can use the keychain, or from the phone. If a `/login` over SSH already happened, delete that file once nothing started from that SSH shell is still running.
+<a id="signing-in-again"></a>**Signing in again:** don't run `/login` over SSH. It wrote the sign-in to `~/.claude/.credentials.json`, a plain-text file (observed 2026-10-27); presumably because the keychain can't be used over SSH (see [known issues](known-issues.md#credentials-stored-in-the-keychain-dont-work-over-ssh)). Sign in from a new window of the `rc` tmux session (`Ctrl+B`, then `C`), which can use the keychain, or from the phone. If a `/login` over SSH already happened, we delete that file once the SSH shell that ran it is closed. What deleting it does to a server already running is untested.
 
 **A phone session stopped responding:** send it another message. In server mode, a crashed session is served again when you message it; no restart needed.
 
@@ -99,7 +99,7 @@ git worktree add -b worktree-bridge-cse_<…> .claude/worktrees/bridge-cse_<…>
    ```
    This lists the processes of every session the server is serving; each command line contains its `cse_…` session ID (observed, including the server's own session). The stood-down session's ID should no longer appear. Expect it to drop out of other sessions' peer lists too (not yet observed). If it reappears later, something messaged it; tell its old peers to stop.
 5. **Remove its worktree** once everything is pushed: `git -C ~/code/my-project worktree remove <folder>`. Do this last: we expect a session whose worktree is gone can't be brought back with `--session-id`, but that's inferred, not tested.
-6. Optionally archive it at claude.ai/code to tidy the list. Do `/exit` first: archiving from the desktop app ends a session the way a crash does and leaves its worktree (observed 2026-10-27).
+6. Optionally archive it to tidy the list. Do `/exit` first: archiving from the Claude desktop app ends a session the way a crash does and leaves its worktree (observed 2026-10-27). Archiving at claude.ai/code is untested; expect the same.
 
 The server's own session (the `--name` one) stands down the same way. The server keeps running, and whether it recreates that session at its next restart is untested.
 

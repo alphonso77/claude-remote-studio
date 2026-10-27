@@ -35,11 +35,11 @@ echo "rc-loop: claude $ver at $(command -v claude)"
 # A debug log per server start, so a restart doesn't overwrite the log of the run that went wrong.
 # RC_DEBUG_DIR="" turns it off. Logs older than 14 days are deleted at each start.
 logdir="${RC_DEBUG_DIR-$HOME/Library/Logs/rc-loop}"
-[[ -n "$logdir" ]] && { mkdir -p "$logdir" || logdir=""; }
+[[ -n "$logdir" ]] && { mkdir -p "$logdir" || { echo "rc-loop: can't create $logdir; no debug log" >&2; logdir=""; }; }
 while true; do
   run_args=("${args[@]}")
   if [[ -n "$logdir" ]]; then
-    find "$logdir" -name 'remote-control-*.log' -mtime +14 -delete
+    find "$logdir" -maxdepth 1 -type f -name 'remote-control-*.log' -mtime +14 -delete
     log="$logdir/remote-control-$(date '+%Y%m%d-%H%M%S').log"
     run_args+=(--debug-file "$log")
     echo "rc-loop: debug log $log"
